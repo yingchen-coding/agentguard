@@ -1,4 +1,4 @@
-"""Maps agent-lint rules to recognized AI-security frameworks.
+"""Maps agentguard rules to recognized AI-security frameworks.
 
 Each security-relevant rule cites where it sits in the **OWASP Top 10 for LLM Applications (2025)**
 and **MITRE ATLAS** — so a finding isn't "a regex fired", it's "this is OWASP LLM01 / ATLAS

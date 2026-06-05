@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from agent_lint.models import Definition, Severity, parse_definition
-from agent_lint.linter import Linter, discover
+from agentguard.models import Definition, Severity, parse_definition
+from agentguard.linter import Linter, discover
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -163,7 +163,7 @@ def test_al201_no_failure_handling():
 
 def test_inline_disable_suppresses():
     raw = ("---\nname: f\ndescription: Use this when the user wants cleanup done for them\n---\n"
-           "# B\n<!-- agent-lint-disable AL203 -->\n"
+           "# B\n<!-- agentguard-disable AL203 -->\n"
            + "You can delete the stale files.\n" * 4)
     assert "AL203" not in codes(run(raw))
 

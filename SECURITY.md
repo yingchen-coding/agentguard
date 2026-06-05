@@ -1,6 +1,6 @@
 # Security Policy
 
-agent-lint is a security tool, so we hold its own supply chain to the same bar it enforces.
+agentguard is a security tool, so we hold its own supply chain to the same bar it enforces.
 
 ## Reporting a vulnerability
 
@@ -16,12 +16,12 @@ You can expect:
 
 ## Supply-chain commitments
 
-- **Zero runtime dependencies.** agent-lint is pure Python standard library — there is no
+- **Zero runtime dependencies.** agentguard is pure Python standard library — there is no
   third-party code in the install path to compromise.
 - **No network, no telemetry.** The tool never makes a network call; it reads local files and
   prints findings. Nothing is uploaded.
 - **No install-time execution.** There are no `setup.py` side effects, no post-install hooks.
-- The CI pipeline runs the test suite, CodeQL, and agent-lint's own `--publish-check` on every
+- The CI pipeline runs the test suite, CodeQL, and agentguard's own `--publish-check` on every
   push, so the repo is continuously scanned for secrets and malware signatures.
 
 ## Supported versions

@@ -10,7 +10,7 @@ someone else's. Two jobs:
     signatures: pipe-to-shell installers, reverse shells, dynamic exec of decoded/remote payloads,
     or install hooks that run the network.
 
-Run via `agent-lint --publish-check <dir>`.
+Run via `agentguard --publish-check <dir>`.
 """
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ from pathlib import Path
 from .models import Finding, Severity
 from .rules import _SECRET_LITERAL, _SECRET_ASSIGN
 
-# Inline escape hatch, e.g. `curl x | sh  # agent-lint-allow AL510` (also honors -disable).
-_ALLOW_RE = re.compile(r"agent-lint-(?:allow|disable)\s+([A-Z0-9, ]+)")
+# Inline escape hatch, e.g. `curl x | sh  # agentguard-allow AL510` (also honors -disable).
+_ALLOW_RE = re.compile(r"agentguard-(?:allow|disable)\s+([A-Z0-9, ]+)")
 
 
 def _line_allows(text: str, pos: int, rule: str) -> bool:
@@ -35,7 +35,7 @@ def _line_allows(text: str, pos: int, rule: str) -> bool:
 
 
 def _load_ignore(root: Path) -> list[str]:
-    f = root / ".agentlintignore"
+    f = root / ".agentguardignore"
     if not f.is_file():
         return []
     pats = []

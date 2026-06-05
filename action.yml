@@ -1,4 +1,4 @@
-name: "agent-lint"
+name: "agentguard"
 description: "Lint AI agent / command / skill definitions for the failure patterns that make agents misbehave."
 author: "Ying Chen"
 branding:
@@ -15,11 +15,11 @@ inputs:
     required: false
     default: "major"
   args:
-    description: "Extra arguments passed verbatim to agent-lint"
+    description: "Extra arguments passed verbatim to agentguard"
     required: false
     default: ""
   upload-sarif:
-    description: "Also emit agent-lint.sarif (upload it yourself with codeql-action/upload-sarif)"
+    description: "Also emit agentguard.sarif (upload it yourself with codeql-action/upload-sarif)"
     required: false
     default: "false"
 
@@ -27,10 +27,10 @@ runs:
   using: "composite"
   steps:
     - shell: bash
-      run: pip install --quiet "agent-lint==0.1.0" || pip install --quiet agent-lint
+      run: pip install --quiet "agentguard==0.1.0" || pip install --quiet agentguard
     - shell: bash
       run: |
         if [ "${{ inputs.upload-sarif }}" = "true" ]; then
-          agent-lint --format sarif -o agent-lint.sarif ${{ inputs.args }} "${{ inputs.path }}" || true
+          agentguard --format sarif -o agentguard.sarif ${{ inputs.args }} "${{ inputs.path }}" || true
         fi
-        agent-lint --fail-at "${{ inputs.fail-at }}" ${{ inputs.args }} "${{ inputs.path }}"
+        agentguard --fail-at "${{ inputs.fail-at }}" ${{ inputs.args }} "${{ inputs.path }}"

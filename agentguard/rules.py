@@ -2,7 +2,7 @@
 
 Rules are deterministic heuristics — fast, CI-able, no LLM. They are tuned to fire on
 real failure patterns seen in production agents, with inline-disable escape hatches
-(`<!-- agent-lint-disable AL050 -->`) for the rare false positive.
+(`<!-- agentguard-disable AL050 -->`) for the rare false positive.
 
 Naming: AL0xx = structure/discovery, AL1xx = clarity, AL2xx = robustness/safety.
 """

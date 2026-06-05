@@ -1,7 +1,7 @@
 # Scanning Claude Code's agent ecosystem for prompt-injection exposure
 
 > A reproducible scan of the agent definitions shipped in widely-installed Claude Code plugins —
-> including Anthropic's own — using [agent-lint](../README.md). Every number below regenerates
+> including Anthropic's own — using [agentguard](../README.md). Every number below regenerates
 > from the command in [Reproduce](#reproduce). Findings are **exposures and hardening gaps**, not
 > claimed live exploits; the point is that the gaps are systematic and cheap to close.
 
@@ -73,13 +73,13 @@ A scanner that cries wolf gets uninstalled. The numbers above are meant to survi
 ## Reproduce
 
 ```bash
-pip install agent-lint
+pip install agentguard
 
 # point it at any installed plugin's agents (or any repo with agents/ commands/ skills/):
-agent-lint ~/.claude/plugins/cache/claude-plugins-official/pr-review-toolkit/*/agents
+agentguard ~/.claude/plugins/cache/claude-plugins-official/pr-review-toolkit/*/agents
 
 # security rules only, machine-readable:
-agent-lint --select AL300,AL301,AL302,AL303,AL305 --format json <path>
+agentguard --select AL300,AL301,AL302,AL303,AL305 --format json <path>
 ```
 
 Run it on your own agents before someone else runs an injection on them.
@@ -87,6 +87,6 @@ Run it on your own agents before someone else runs an injection on them.
 ## Responsible framing
 
 These plugins are useful and the teams that built them are not careless — this is a *young
-ecosystem* without an established linting norm, which is exactly the gap agent-lint exists to
+ecosystem* without an established linting norm, which is exactly the gap agentguard exists to
 fill. The findings are hardening recommendations. If you maintain one of these plugins, the
 two-line fix (a data-not-instructions guard + a scoped `tools:` list) closes most of it.

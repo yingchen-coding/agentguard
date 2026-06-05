@@ -31,7 +31,7 @@ jobs:
       - run: python3 eval/benchmark.py   # gates on zero false alarms; reports recall
 
   self-lint:
-    # agent-lint lints its own example definitions and runs its own supply-chain check — dogfooding.
+    # agentguard lints its own example definitions and runs its own supply-chain check — dogfooding.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,12 +39,12 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e .
-      - run: agent-lint --format sarif -o agent-lint.sarif examples || true
+      - run: agentguard --format sarif -o agentguard.sarif examples || true
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: agent-lint.sarif
+          sarif_file: agentguard.sarif
         continue-on-error: true
       # Supply-chain self-scan: the repo must be free of committed secrets and malware signatures.
       # (--select limits the gate to the security-critical AL5xx checks; placeholders won't fail it.)
-      - run: agent-lint . --publish-check --select AL503,AL510,AL511,AL512,AL513 --fail-at major
+      - run: agentguard . --publish-check --select AL503,AL510,AL511,AL512,AL513 --fail-at major

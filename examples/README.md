@@ -6,7 +6,7 @@ thought. Then run the linter.
 ## Before
 
 ```bash
-$ agent-lint examples/before.md
+$ agentguard examples/before.md
 ```
 
 ```
@@ -42,7 +42,7 @@ privilege), a scope boundary ("you review only — never delete/push/merge"), an
 worked example.
 
 ```bash
-$ agent-lint examples/after.md
+$ agentguard examples/after.md
 ✓ clean — 1 definition checked, no findings
 ```
 
