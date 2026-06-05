@@ -99,11 +99,36 @@ agent-lint --publish-check .     # + repo checks: LICENSE, README, secrets, malw
 agent-lint --format sarif -o agent-lint.sarif .       # GitHub code-scanning
 agent-lint --format json .                            # machine-readable
 agent-lint --fail-at critical .                       # only block on critical
+agent-lint --update-baseline .agent-lint-baseline.json .   # snapshot existing findings
+agent-lint --baseline .agent-lint-baseline.json .          # fail only on NEW findings
 agent-lint --list-rules                               # full catalog
 ```
 
 **Exit codes:** `0` clean (relative to `--fail-at`, default `major`), `1` findings at/above
 threshold, `2` usage error.
+
+### Configuration
+
+Set defaults in `[tool.agent-lint]` in `pyproject.toml` (or a `.agent-lint.toml`); CLI flags
+override them:
+
+```toml
+[tool.agent-lint]
+ignore = ["AL206"]
+fail-at = "critical"
+publish-check = true
+```
+
+### Adopting on an existing repo
+
+Already have findings? Snapshot them once and let CI gate only on *new* ones:
+
+```bash
+agent-lint --update-baseline .agent-lint-baseline.json .   # commit this file
+agent-lint --baseline .agent-lint-baseline.json .          # now only regressions fail
+```
+
+📚 **Every rule, with rationale and fixes: [docs/rules.md](docs/rules.md).**
 
 Suppress a false positive for one file with a comment anywhere in it:
 
