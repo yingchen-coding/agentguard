@@ -1,5 +1,10 @@
 # agent-lint
 
+[![CI](https://github.com/YOUR_USERNAME/agent-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/agent-lint/actions)
+[![PyPI](https://img.shields.io/pypi/v/agent-lint.svg)](https://pypi.org/project/agent-lint/)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://pypi.org/project/agent-lint/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 **A prompt-injection & capability scanner for AI agents.** It reads the agent / command / skill
 definitions that drive Claude Code (and any harness that loads markdown-with-frontmatter prompts),
 understands the *tools each agent is granted*, and finds the security holes and reliability gaps
@@ -63,6 +68,9 @@ Run with zero config against **19 production agents** shipped in Anthropic's own
 These aren't style nits. Each is a concrete path from "malicious content the agent was asked to
 read" to "the agent did something it shouldn't." And the fix for most is one sentence plus a
 scoped `tools:` line.
+
+📄 **Full reproducible write-up: [docs/findings.md](docs/findings.md)** — methodology, per-plugin
+breakdown, and the exact command to regenerate every number.
 
 > Calibrated for a **near-zero false-positive rate** on the high-severity rules: the
 > exfiltration, hardcoded-secret, and command-injection checks (AL301/AL303/AL305) produce **zero
