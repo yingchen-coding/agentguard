@@ -22,7 +22,7 @@ agent-lint --version`).
 
 ## Before the first release
 
-Replace the `YOUR_USERNAME` placeholder with the real GitHub org/user in:
+Replace the `YOUR_USERNAME` placeholder with the real GitHub org/user in: <!-- agent-lint-allow AL502 -->
 
 - `README.md` (badges, links, Action reference)
 - `pyproject.toml` (`[project.urls]`)
