@@ -20,7 +20,7 @@ jobs:
       - run: pytest -q
 
   self-lint:
-    # agent-lint lints its own example/fixture definitions — dogfooding in CI.
+    # agent-lint lints its own example definitions and runs its own supply-chain check — dogfooding.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,3 +34,6 @@ jobs:
         with:
           sarif_file: agent-lint.sarif
         continue-on-error: true
+      # Supply-chain self-scan: the repo must be free of committed secrets and malware signatures.
+      # (--select limits the gate to the security-critical AL5xx checks; placeholders won't fail it.)
+      - run: agent-lint . --publish-check --select AL503,AL510,AL511,AL512,AL513 --fail-at major
