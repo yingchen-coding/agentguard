@@ -30,6 +30,12 @@ First release. A capability-aware security & reliability scanner for agent defin
 - **Baseline:** `--update-baseline` snapshots current findings; `--baseline` then fails only on new
   ones — for adopting the linter on a repo that already has findings.
 - **Docs:** full rule reference in `docs/rules.md`.
+- **Framework grounding:** every security rule maps to the OWASP Top 10 for LLM Applications (2025)
+  and MITRE ATLAS (`agent_lint/frameworks.py`, surfaced inline on findings, `--list-rules`, JSON,
+  and SARIF; table in `docs/threat-mapping.md`).
+- **Working PoC:** `examples/poc/` — a runnable, safe demonstration of the injection→action chain
+  (OWASP LLM01 / ATLAS AML.T0051.001) that AL300 flags: an untrusted report drives a command into
+  the execution sink on the vulnerable agent and is contained on the hardened one.
 - GitHub composite Action (`action.yml`) + CI workflow. 53 tests.
 - Calibrated against 19 production agents (Anthropic `pr-review-toolkit` / `plugin-dev`,
   `understand-anything`): 17/19 show an injection→action exposure, 15/19 run with no tool
