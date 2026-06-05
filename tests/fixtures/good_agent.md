@@ -3,6 +3,7 @@ name: csv-validator
 description: Validates a CSV file against an expected schema. Use this when the user gives you
   a CSV (file or pasted text) and asks whether it conforms to a schema, or to find malformed
   rows. Not for transforming or cleaning data — only for validating it.
+tools: [Read]
 ---
 
 # CSV Validator
