@@ -1,10 +1,13 @@
-.PHONY: install test lint typecheck build selfscan all
+.PHONY: install test lint typecheck build selfscan bench all
 
 install:        ## install in editable mode with dev deps
 	pip install -e ".[dev]"
 
 test:           ## run the test suite
 	pytest -q
+
+bench:          ## run the security accuracy benchmark (recall + precision)
+	python3 eval/benchmark.py --verbose
 
 lint:           ## ruff lint
 	ruff check .
