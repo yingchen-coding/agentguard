@@ -15,6 +15,7 @@ Run via `agent-lint --publish-check <dir>`.
 from __future__ import annotations
 
 import fnmatch
+import os
 import re
 from pathlib import Path
 
@@ -91,12 +92,12 @@ _INSTALL_HOOK = re.compile(
 
 
 def _walk(root: Path):
-    for p in root.rglob("*"):
-        if not p.is_file():
-            continue
-        if any(seg in _SKIP_DIRS for seg in p.parts):
-            continue
-        yield p
+    # Prune heavy dirs (node_modules, .git, .venv, …) during traversal rather than after — on a
+    # repo with dependencies, rglob("*") would crawl thousands of files we'd only discard.
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in _SKIP_DIRS]
+        for fn in filenames:
+            yield Path(dirpath) / fn
 
 
 def _read(p: Path) -> str:

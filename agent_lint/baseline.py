@@ -18,7 +18,9 @@ _NUM = re.compile(r"\d+")
 
 def _fingerprint(path: str, rule: str, message: str) -> str:
     norm = _NUM.sub("#", message)  # ignore embedded counts/line refs
-    return hashlib.sha1(f"{path}\0{rule}\0{norm}".encode()).hexdigest()[:16]
+    # sha256 (not sha1) purely so this security tool doesn't trip its own CodeQL/bandit scan;
+    # truncated — it's a content fingerprint, not a security primitive.
+    return hashlib.sha256(f"{path}\0{rule}\0{norm}".encode()).hexdigest()[:16]
 
 
 def _iter(report: LintReport, root: Path | None):
