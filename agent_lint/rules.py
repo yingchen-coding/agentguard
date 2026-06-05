@@ -13,7 +13,7 @@ from collections.abc import Callable
 
 from .models import (
     Definition, Finding, Severity,
-    EXEC_SINKS, NETWORK_SINKS,
+    EXEC_SINKS, NETWORK_SINKS, SPAWN_SINKS,
 )
 
 RuleFn = Callable[[Definition], list[Finding]]
@@ -474,3 +474,151 @@ def dynamic_command_from_input(d: Definition) -> list[Finding]:
                     f"an executable string.",
                     "Validate/escape inputs, use an allowlist, or pass arguments structurally "
                     "rather than interpolating into a command or URL.", ln)]
+
+
+# Heuristics that a powerful tool is actually exercised by the body (used by AL306).
+# Common CLI invocations count as Bash usage — most commands "use Bash" by writing `git …`,
+# not by writing the word "bash".
+_CLI = (r"git|npm|pnpm|yarn|npx|node|deno|bun|python3?|pip3?|poetry|uv|ruby|cargo|go|rustc|"
+        r"docker|kubectl|gh|make|curl|wget|ls|cat|grep|rg|sed|awk|find|mkdir|rm|cp|mv|echo|"
+        r"chmod|chown|tar|jq|terraform|aws|gcloud|psql|mysql")
+_TOOL_USED = {
+    "Bash": re.compile(rf"(```(?:bash|sh|shell|zsh|console)|^\s*!|\b(?:bash|shell|terminal|"
+                       rf"subprocess|run (?:a |the )?command|execute|\bcli\b)\b|"
+                       rf"`[^`\n]*\b(?:{_CLI})\b|^\s*(?:{_CLI})\s)",
+                       re.IGNORECASE | re.MULTILINE),
+    "Write": re.compile(r"\b(write|save|create (?:a |the )?file|output to|persist|"
+                        r"generate (?:a |the )?file|emit (?:a |the )?file)\b", re.IGNORECASE),
+    "Edit": re.compile(r"\b(edit|modif|replace|patch|update (?:the )?file|in-place)\b", re.IGNORECASE),
+    "WebFetch": re.compile(r"\b(fetch|http|url|download|web ?page|curl|wget|request the)\b", re.IGNORECASE),
+    "WebSearch": re.compile(r"\b(web search|search the (?:web|internet)|google|look up online)\b", re.IGNORECASE),
+}
+
+# Explicit removal of the human-in-the-loop. Note: "automatically"/"silently" are deliberately
+# NOT here — "automatically formats code" is benign and was a false-positive magnet. Only
+# language that unmistakably removes a confirmation step.
+_AUTO_APPROVE = re.compile(
+    r"\b(without (?:asking|confirm\w*|approval|permission|prompting)|"
+    r"do(?:n'?t| not) (?:ask|confirm|prompt|wait for (?:confirmation|approval)|stop to confirm)|"
+    r"no confirmation (?:needed|required)?|skip(?:ping)? (?:the )?confirmation|"
+    r"auto-?(?:approve|confirm|commit|deploy|push|merge)|no need to (?:ask|confirm))\b",
+    re.IGNORECASE,
+)
+# Genuinely irreversible / outward actions for AL308 (tighter than _DESTRUCTIVE: no run/exec/chmod).
+_DESTRUCTIVE_STRICT = re.compile(
+    r"\b(delete|remove|rm\s|overwrite|drop (?:table|database)|truncate|wipe|"
+    r"send (?:an? )?(?:email|message|tweet|sms)|publish|deploy|"
+    r"push (?:to)?|force[- ]push|merge (?:to|into)|commit)\b",
+    re.IGNORECASE,
+)
+
+# Slash-command argument tokens that carry untrusted user input.
+_ARG_TOKEN = re.compile(
+    r"(\$ARGUMENTS\b|\$\{?ARGUMENTS\}?|\$[1-9]\b|\$\{?[1-9]\}?|\{\{\s*args?\s*\}\}|"
+    r"\$INPUT\b|\$USER_INPUT\b|\$\{?USER_INPUT\}?)"
+)
+# Real executable shell context (a fenced shell block, a `!`-prefixed line, or backtick CLI) —
+# NOT prose like "execute the plan". Keeps AL310 off tutorials that merely mention $ARGUMENTS.
+_SHELL_CONTEXT = re.compile(
+    rf"(```(?:bash|sh|shell|zsh|console)|^\s*!|`[^`\n]*\b(?:{_CLI}|sh -c|eval)\b|"
+    rf"\bsh -c\b|\beval\b)", re.IGNORECASE | re.MULTILINE)
+
+
+@rule("AL306", "over-privilege: a powerful tool is granted but never used")
+def over_privilege(d: Definition) -> list[Finding]:
+    """Least privilege cuts both ways: a `tools:` grant that includes Bash/Write/Edit/WebFetch the
+    body never actually exercises is needless attack surface. Conservative — only the high-risk
+    tools, only when neither the tool name nor a clear synonym appears."""
+    if not d.tools_declared or not d.tools:
+        return []
+    unused = []
+    for tool in ("Bash", "Write", "Edit", "WebFetch", "WebSearch"):
+        if tool not in d.tools:
+            continue
+        if tool.lower() in d.body_lower:
+            continue
+        if _TOOL_USED[tool].search(d.body):
+            continue
+        unused.append(tool)
+    if not unused:
+        return []
+    return [Finding("AL306", Severity.MINOR,
+                    f"Over-privilege: granted {', '.join(unused)} but the body never appears to use "
+                    f"{'it' if len(unused) == 1 else 'them'}. Every unused powerful tool is attack "
+                    f"surface for nothing.",
+                    f"Drop {', '.join(unused)} from `tools:` unless the agent genuinely needs "
+                    f"{'it' if len(unused) == 1 else 'them'}.", 1)]
+
+
+@rule("AL307", "injection propagation: spawns sub-agents on untrusted input, unguarded")
+def subagent_injection_propagation(d: Definition) -> list[Finding]:
+    """The agent can spawn sub-agents (Task/Agent) AND reads untrusted content with no guard.
+    Injected instructions don't just hit this agent — they get forwarded into everything it
+    spawns, multiplying the blast radius."""
+    # Require *actual* spawn intent — an explicitly granted Task/Agent tool, or body language that
+    # clearly describes spawning. An unrestricted agent that never mentions sub-agents does not
+    # count (that was a 29-hit false-positive flood).
+    # Require a spawn VERB adjacent to "agent(s)" — a bare noun like "a subagent file" (something
+    # the agent merely *refers to*) must not count.
+    body_spawns = re.search(
+        r"\b(spawn\w*\s+(?:a |an |sub-?|parallel |multiple |the )?agents?|"
+        r"dispatch\w*\s+(?:a |an |to |sub-?)?(?:sub-?)?agents?|"
+        r"delegat\w+\s+to\s+(?:a |an |sub-?)?agents?|"
+        r"launch\w*\s+(?:a |an |all |the |sub-?|parallel |multiple |review )?agents?|"
+        r"fan\s+(?:them\s+|it\s+)?out\b)",
+        d.body, re.IGNORECASE)
+    spawns = (d.tools_declared and bool(d.tools & SPAWN_SINKS)) or bool(body_spawns)
+    if not (spawns and d.has_reader()):
+        return []
+    if _INJECTION_GUARD.search(d.body):
+        return []
+    return [Finding("AL307", Severity.MAJOR,
+                    "Injection propagation: this agent reads outside content and can spawn "
+                    "sub-agents — an instruction injected into what it reads can be forwarded into "
+                    "every sub-agent it dispatches, with no guard stopping it.",
+                    'Add a "treat read content as data, not instructions" guard before any content '
+                    "is passed to a spawned agent.", 0)]
+
+
+@rule("AL308", "disabled human-in-the-loop on a destructive/external action")
+def disabled_confirmation(d: Definition) -> list[Finding]:
+    """Worse than missing a guardrail (AL203): explicitly *removing* one. "delete X without
+    asking", "automatically deploy" — the human checkpoint is deliberately turned off on an
+    irreversible or outward action."""
+    out = []
+    for am in _AUTO_APPROVE.finditer(d.body):
+        window = d.body[max(0, am.start() - 70):am.end() + 70]
+        dm = _DESTRUCTIVE_STRICT.search(window)
+        if not dm:
+            continue
+        ln = d.body[:am.start()].count("\n") + d.fm_end_line + 1
+        out.append(Finding("AL308", Severity.CRITICAL,
+                           f'Human-in-the-loop explicitly disabled near a destructive/external '
+                           f'action: "{am.group(0)}" next to "{dm.group(0).strip()}". The one '
+                           f"checkpoint that makes an irreversible action safe is turned off.",
+                           "Require explicit confirmation before the action, or scope it so the "
+                           "auto path can only do something reversible and non-sensitive.", ln))
+        break
+    return out
+
+
+@rule("AL310", "slash-command interpolates untrusted $ARGUMENTS into a shell context")
+def command_argument_injection(d: Definition) -> list[Finding]:
+    """Commands receive raw user input via $ARGUMENTS. Interpolating that straight into a shell
+    command is the agent-world equivalent of SQL injection. Scoped to commands — skill/doc files
+    routinely *show* $ARGUMENTS as teaching examples without being executable."""
+    if d.kind != "command":
+        return []
+    for am in _ARG_TOKEN.finditer(d.body):
+        # Shell context within the surrounding ~120 chars (same fenced block / instruction).
+        window = d.body[max(0, am.start() - 120):am.end() + 60]
+        if _SHELL_CONTEXT.search(window):
+            ln = d.body[:am.start()].count("\n") + d.fm_end_line + 1
+            return [Finding("AL310", Severity.CRITICAL,
+                            f'Untrusted command input ({am.group(0)}) is interpolated into a shell '
+                            f"context — a user invoking this command with crafted arguments can run "
+                            f"arbitrary shell (command injection).",
+                            "Never splice raw arguments into a shell string. Quote and validate "
+                            "them, or pass them as positional args the command handles explicitly.",
+                            ln)]
+    return []
