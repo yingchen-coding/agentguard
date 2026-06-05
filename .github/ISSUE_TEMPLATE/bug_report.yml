@@ -19,11 +19,11 @@ body:
     id: expected
     attributes:
       label: Expected vs actual
-      description: What did you expect, and what did agent-lint do?
+      description: What did you expect, and what did agentguard do?
     validations:
       required: true
   - type: input
     id: version
     attributes:
-      label: agent-lint version
-      placeholder: "agent-lint --version"
+      label: agentguard version
+      placeholder: "agentguard --version"

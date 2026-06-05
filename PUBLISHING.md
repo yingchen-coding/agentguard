@@ -18,11 +18,11 @@ twine upload dist/*                        # needs a PyPI API token
 The package targets `Metadata-Version: 2.4` with `License-Expression: MIT` (PEP 639). Modern PyPI
 accepts this; only very old local `twine`/`pkginfo` will complain on `twine check` — that's a
 local-tooling issue, not a package defect (verify with a clean install: `pip install dist/*.whl &&
-agent-lint --version`).
+agentguard --version`).
 
 ## Before the first release
 
-Replace the `YOUR_USERNAME` placeholder with the real GitHub org/user in: <!-- agent-lint-allow AL502 -->
+Replace the `YOUR_USERNAME` placeholder with the real GitHub org/user in: <!-- agentguard-allow AL502 -->
 
 - `README.md` (badges, links, Action reference)
 - `pyproject.toml` (`[project.urls]`)
@@ -35,5 +35,5 @@ grep -rl YOUR_USERNAME . | grep -v .git
 
 ## Version bump
 
-Update `version` in `pyproject.toml` and `__version__` in `agent_lint/__init__.py` (keep them in
+Update `version` in `pyproject.toml` and `__version__` in `agentguard/__init__.py` (keep them in
 sync), add a `CHANGELOG.md` entry, tag `vX.Y.Z`.
