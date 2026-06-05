@@ -1,0 +1,7 @@
+- id: agent-lint
+  name: agent-lint
+  description: Scan AI agent / command / skill definitions for prompt-injection and capability risks.
+  entry: agent-lint
+  language: python
+  files: '(agents|commands|skills)/.*\.md$|\.(agent|skill)\.md$'
+  pass_filenames: true
