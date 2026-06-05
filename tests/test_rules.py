@@ -269,6 +269,17 @@ def test_al306_quiet_when_bash_used_via_cli():
     assert "AL306" not in codes(run(raw))
 
 
+def test_empty_tools_field_is_declared_not_unrestricted():
+    # A `tools:` field present but empty = least privilege (no tools), NOT inherit-everything.
+    raw = ("---\nname: f\ndescription: Use this when doing a small read-only task\n"
+           "tools: \n---\n# B\nSummarize the input.\n")
+    d = parse_definition_from_text(raw)
+    assert d.tools_declared is True
+    assert d.capabilities == set()
+    assert not d.unrestricted
+    assert "AL302" not in codes(Linter().lint_definition(d))
+
+
 def test_al307_subagent_propagation():
     raw = ("---\nname: f\ndescription: Use this when reviewing a large change set\n"
            "tools: [Read, Task]\n---\n# B\nRead the diff, then dispatch a sub-agent per file.\n"

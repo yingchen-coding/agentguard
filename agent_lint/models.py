@@ -176,13 +176,14 @@ def parse_definition(path: Path) -> Definition:
 
 def _parse_tools(fm: dict) -> tuple[set[str] | None, bool]:
     """Extract the tool grant from frontmatter. Handles `tools: ["Read", "Write"]`,
-    `tools: Read, Grep`, and `allowed-tools: ...`. Returns (toolset, was_declared)."""
-    raw_val = None
+    `tools: Read, Grep`, and `allowed-tools: ...`. Returns (toolset, was_declared).
+
+    A field that is *present but empty* (`tools:` or `tools: []`) means **no tools** — declared
+    with an empty grant — never "inherit everything". Only an entirely absent field is treated as
+    unrestricted; inferring full access from an empty field would be the dangerous direction.
+    """
     for key in ("tools", "allowed-tools", "allowed_tools"):
-        if key in fm and fm[key] != "":
-            raw_val = fm[key]
-            break
-    if raw_val is None:
-        return None, False
-    tokens = set(_TOOL_TOKEN.findall(str(raw_val)))
-    return classify_tools(tokens), True
+        if key in fm:
+            tokens = set(_TOOL_TOKEN.findall(str(fm[key])))
+            return classify_tools(tokens), True
+    return None, False

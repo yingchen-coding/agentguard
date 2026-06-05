@@ -143,7 +143,7 @@ def _walk_md(root: Path):
 
 def _has_frontmatter(path: Path) -> bool:
     try:
-        with path.open("r", encoding="utf-8", errors="replace") as fh:
+        with path.open("r", encoding="utf-8-sig", errors="replace") as fh:  # utf-8-sig strips BOM
             return fh.read(8).lstrip().startswith("---")
     except OSError:
         return False
