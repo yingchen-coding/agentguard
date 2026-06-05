@@ -39,6 +39,36 @@ class Finding:
         }
 
 
+# --- capability model -------------------------------------------------------------
+# Claude Code tools, grouped by the security property that matters for threat analysis.
+# A tool can belong to more than one group.
+
+# Pull in content the agent does not author — a vector for prompt injection.
+EXTERNAL_READERS = {"WebFetch", "WebSearch", "Read", "Grep", "Glob", "NotebookRead"}
+# Clearly untrusted / network-sourced (stronger signal than reading a local file).
+UNTRUSTED_READERS = {"WebFetch", "WebSearch"}
+# Execute code or mutate state irreversibly.
+EXEC_SINKS = {"Bash", "Write", "Edit", "NotebookEdit"}
+# Can move data off the machine (exfiltration sink).
+NETWORK_SINKS = {"WebFetch", "WebSearch", "Bash"}
+# Propagate privilege by spawning more agents.
+SPAWN_SINKS = {"Task", "Agent"}
+
+ALL_SINKS = EXEC_SINKS | NETWORK_SINKS | SPAWN_SINKS
+
+_TOOL_TOKEN = re.compile(r"[A-Za-z_][\w.:-]*")
+
+
+def classify_tools(tokens: set[str]) -> set[str]:
+    """Canonicalize tool names. mcp__server__action tools are kept verbatim but recognized
+    as both readers and network sinks (they reach external systems both ways)."""
+    return {t.strip() for t in tokens if t.strip()}
+
+
+def _mcp(tokens: set[str]) -> bool:
+    return any(t.lower().startswith("mcp__") or t.lower().startswith("mcp:") for t in tokens)
+
+
 @dataclass
 class Definition:
     """A parsed agent / command / skill definition (a markdown file with optional frontmatter)."""
@@ -49,6 +79,8 @@ class Definition:
     fm_end_line: int = 0          # line where frontmatter closes (0 if none)
     kind: str = "agent"           # agent | command | skill (inferred from path)
     disabled_rules: set[str] = field(default_factory=set)  # via inline directive
+    tools: set[str] | None = None     # declared tool grant; None = field absent
+    tools_declared: bool = False      # whether a tools/allowed-tools field was present
 
     # ---- convenience views (computed once) ----
     @property
@@ -58,6 +90,33 @@ class Definition:
     @property
     def body_line_count(self) -> int:
         return self.body.count("\n") + 1
+
+    @property
+    def unrestricted(self) -> bool:
+        """An agent with no tools field inherits the FULL toolset — maximal blast radius."""
+        return self.kind == "agent" and not self.tools_declared
+
+    @property
+    def capabilities(self) -> set[str]:
+        """Effective tool set: the declared grant, or every tool if unrestricted."""
+        if self.unrestricted:
+            return EXEC_SINKS | EXTERNAL_READERS | NETWORK_SINKS | SPAWN_SINKS
+        return self.tools or set()
+
+    def has_reader(self) -> bool:
+        caps = self.capabilities
+        return bool(caps & EXTERNAL_READERS) or _mcp(caps)
+
+    def has_untrusted_reader(self) -> bool:
+        caps = self.capabilities
+        return bool(caps & UNTRUSTED_READERS) or _mcp(caps)
+
+    def has_exec_sink(self) -> bool:
+        return bool(self.capabilities & EXEC_SINKS)
+
+    def has_network_sink(self) -> bool:
+        caps = self.capabilities
+        return bool(caps & NETWORK_SINKS) or _mcp(caps)
 
     def line_of(self, needle_regex: str) -> int:
         """1-based line number of the first match in the full file, or 0."""
@@ -108,5 +167,21 @@ def parse_definition(path: Path) -> Definition:
             r = r.strip()
             if r:
                 disabled.add(r)
+    tools, declared = _parse_tools(fm)
     return Definition(path=path, raw=raw, frontmatter=fm, body=body,
-                      fm_end_line=fm_end, kind=kind, disabled_rules=disabled)
+                      fm_end_line=fm_end, kind=kind, disabled_rules=disabled,
+                      tools=tools, tools_declared=declared)
+
+
+def _parse_tools(fm: dict) -> tuple[set[str] | None, bool]:
+    """Extract the tool grant from frontmatter. Handles `tools: ["Read", "Write"]`,
+    `tools: Read, Grep`, and `allowed-tools: ...`. Returns (toolset, was_declared)."""
+    raw_val = None
+    for key in ("tools", "allowed-tools", "allowed_tools"):
+        if key in fm and fm[key] != "":
+            raw_val = fm[key]
+            break
+    if raw_val is None:
+        return None, False
+    tokens = set(_TOOL_TOKEN.findall(str(raw_val)))
+    return classify_tools(tokens), True

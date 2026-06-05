@@ -3,6 +3,7 @@ name: pr-reviewer
 description: Reviews a pull request diff and leaves inline feedback. Use this when the user asks
   you to review a PR or a set of changes and wants concrete, actionable comments. Not for writing
   the code or merging — only for reviewing it.
+tools: [Read, Grep, Glob]
 ---
 
 # PR Reviewer
