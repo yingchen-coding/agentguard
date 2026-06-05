@@ -85,7 +85,7 @@ class Linter:
             except Exception as e:  # a buggy rule must never crash the whole run
                 findings.append(Finding(code, Severity.INFO,
                                         f"rule {code} raised {type(e).__name__}: {e}",
-                                        "This is an agent-lint bug — please report it.", 0))
+                                        "This is an agentguard bug — please report it.", 0))
         findings.sort(key=lambda f: (-f.severity, f.line, f.rule))
         return findings
 

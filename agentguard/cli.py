@@ -1,4 +1,4 @@
-"""Command-line entry point: `agent-lint [paths...] [options]`."""
+"""Command-line entry point: `agentguard [paths...] [options]`."""
 from __future__ import annotations
 
 import argparse
@@ -22,7 +22,7 @@ def _parse_codes(value: str | None) -> set[str] | None:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="agent-lint",
+        prog="agentguard",
         description="Lint AI agent / command / skill definitions for the failure patterns "
                     "that make agents misbehave in production.",
     )
@@ -46,18 +46,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--update-baseline", metavar="FILE",
                    help="write the current findings to FILE as the new baseline and exit 0")
     p.add_argument("--no-config", action="store_true",
-                   help="ignore any [tool.agent-lint] / .agent-lint.toml config")
+                   help="ignore any [tool.agentguard] / .agentguard.toml config")
     p.add_argument("--list-rules", action="store_true", help="print the rule catalog and exit")
-    p.add_argument("--version", action="version", version=f"agent-lint {__version__}")
+    p.add_argument("--version", action="version", version=f"agentguard {__version__}")
     return p
 
 
 _PROJECT_RULES = [
     ("AL500", "no LICENSE file (repo legally unusable when public)"),
     ("AL501", "no README"),
-    ("AL502", "unresolved placeholder (YOUR_USERNAME, CHANGEME, …)"),  # agent-lint-allow AL502
+    ("AL502", "unresolved placeholder (YOUR_USERNAME, CHANGEME, …)"),  # agentguard-allow AL502
     ("AL503", "hardcoded secret committed in the repo"),
-    ("AL510", "pipe-to-shell execution (curl … | sh)"),  # agent-lint-allow AL510
+    ("AL510", "pipe-to-shell execution (curl … | sh)"),  # agentguard-allow AL510
     ("AL511", "dynamic exec of decoded/remote content"),
     ("AL512", "reverse-shell / raw-socket signature"),
     ("AL513", "install hook runs the shell/network (pre/postinstall)"),
@@ -72,7 +72,7 @@ def _list_rules() -> int:
         ref = short_refs(code)
         return f"  {code}  {title}" + (f"   ({ref})" if ref else "")
 
-    print("agent-lint rules:\n")
+    print("agentguard rules:\n")
     for code, _ in all_rules():
         print(line(code, TITLES.get(code, "")))
     print("\n  -- AL5xx: repo-level, run with --publish-check --")
@@ -80,7 +80,7 @@ def _list_rules() -> int:
         print(line(code, title))
     total = len(all_rules()) + len(_PROJECT_RULES)
     print(f"\n{total} rules, mapped to OWASP LLM Top 10 (2025) & MITRE ATLAS. Disable inline with "
-          f"`<!-- agent-lint-disable AL202 -->`\n(or `# agent-lint-allow AL510` in code), or "
+          f"`<!-- agentguard-disable AL202 -->`\n(or `# agentguard-allow AL510` in code), or "
           f"globally with --ignore. Full reference: docs/rules.md, docs/threat-mapping.md.")
     return 0
 
@@ -93,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:
     paths = [Path(p) for p in args.paths]
     missing = [p for p in paths if not p.exists()]
     if missing:
-        print(f"agent-lint: path not found: {', '.join(str(m) for m in missing)}",
+        print(f"agentguard: path not found: {', '.join(str(m) for m in missing)}",
               file=sys.stderr)
         return 2
 
@@ -111,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
     publish_check = args.publish_check if args.publish_check is not None \
         else cfg.get("publish_check", False)
     if fail_at not in _SEV_NAMES:
-        print(f"agent-lint: invalid fail-at: {fail_at}", file=sys.stderr)
+        print(f"agentguard: invalid fail-at: {fail_at}", file=sys.stderr)
         return 2
 
     linter = Linter(select=select, ignore=ignore or set())
@@ -129,14 +129,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.update_baseline:
         from .baseline import write_baseline
         n = write_baseline(Path(args.update_baseline), report, root)
-        print(f"agent-lint: wrote baseline with {n} findings to {args.update_baseline}",
+        print(f"agentguard: wrote baseline with {n} findings to {args.update_baseline}",
               file=sys.stderr)
         return 0
     if args.baseline:
         from .baseline import load_baseline, apply_baseline
         suppressed = apply_baseline(report, load_baseline(Path(args.baseline)), root)
         if suppressed:
-            print(f"agent-lint: {suppressed} baselined finding(s) suppressed", file=sys.stderr)
+            print(f"agentguard: {suppressed} baselined finding(s) suppressed", file=sys.stderr)
 
     color = not args.no_color and sys.stdout.isatty() and args.output is None
     if args.format == "json":
@@ -148,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.output:
         Path(args.output).write_text(text + "\n", encoding="utf-8")
-        print(f"agent-lint: wrote {args.format} report to {args.output}", file=sys.stderr)
+        print(f"agentguard: wrote {args.format} report to {args.output}", file=sys.stderr)
     else:
         print(text)
 

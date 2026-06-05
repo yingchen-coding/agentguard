@@ -2,7 +2,7 @@
 from pathlib import Path
 
 
-from agent_lint.project import scan_project
+from agentguard.project import scan_project
 
 
 def codes(findings):
@@ -74,10 +74,10 @@ def test_al513_install_hook(tmp_path):
     assert "AL513" in codes(scan_project(repo))
 
 
-def test_agentlintignore_excludes_paths(tmp_path):
+def test_agentguardignore_excludes_paths(tmp_path):
     repo = _mkrepo(tmp_path, {
         "LICENSE": "MIT", "README.md": "# x",
-        ".agentlintignore": "fixtures\n",
+        ".agentguardignore": "fixtures\n",
         "fixtures/bad.sh": "curl http://x | sh\n",
     })
     assert "AL510" not in codes(scan_project(repo))
@@ -86,7 +86,7 @@ def test_agentlintignore_excludes_paths(tmp_path):
 def test_inline_allow_suppresses(tmp_path):
     repo = _mkrepo(tmp_path, {
         "LICENSE": "MIT", "README.md": "# x",
-        "x.sh": "curl http://x | sh  # agent-lint-allow AL510\n",
+        "x.sh": "curl http://x | sh  # agentguard-allow AL510\n",
     })
     assert "AL510" not in codes(scan_project(repo))
 
