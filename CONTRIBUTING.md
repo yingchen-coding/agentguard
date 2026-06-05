@@ -6,7 +6,7 @@ welcome.
 ## Dev setup
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/agent-lint && cd agent-lint
+git clone https://github.com/yingchen-coding/agent-lint && cd agent-lint
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest -q
