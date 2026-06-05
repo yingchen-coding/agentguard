@@ -1,5 +1,8 @@
 # Changelog
 
+All notable changes are documented here. Format loosely follows
+[Keep a Changelog](https://keepachangelog.com/).
+
 ## 0.1.0
 
 First release. A capability-aware security & reliability scanner for agent definitions.
@@ -22,6 +25,11 @@ First release. A capability-aware security & reliability scanner for agent defin
   AL204 assert-without-verify ("grep before you recommend").
 - `agent-lint` CLI: human / JSON / SARIF output, `--select` / `--ignore`, `--fail-at`, severity
   exit codes. Inline `<!-- agent-lint-disable ALxxx -->` suppression.
+- **Config:** `[tool.agent-lint]` in `pyproject.toml` or `.agent-lint.toml` (select / ignore /
+  fail-at / publish-check), zero-dependency (stdlib `tomllib` with a tiny fallback for 3.9/3.10).
+- **Baseline:** `--update-baseline` snapshots current findings; `--baseline` then fails only on new
+  ones — for adopting the linter on a repo that already has findings.
+- **Docs:** full rule reference in `docs/rules.md`.
 - GitHub composite Action (`action.yml`) + CI workflow. 53 tests.
 - Calibrated against 19 production agents (Anthropic `pr-review-toolkit` / `plugin-dev`,
   `understand-anything`): 17/19 show an injection→action exposure, 15/19 run with no tool

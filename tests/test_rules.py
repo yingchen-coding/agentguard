@@ -5,7 +5,6 @@ import pytest
 
 from agent_lint.models import Definition, Severity, parse_definition
 from agent_lint.linter import Linter, discover
-from agent_lint import rules
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
