@@ -41,6 +41,22 @@ funny screenshot, it's remote code execution or data exfiltration.
 
 Almost nobody scans these definitions. agent-lint does.
 
+### Why the definition is the whole ballgame
+
+This isn't a hunch. In [*How Anthropic enables self-service data analytics with
+Claude*](https://www.anthropic.com/news/how-anthropic-enables-self-service-data-analytics-with-claude),
+Anthropic reports that the jump from **21% → 95%** accuracy on internal analytics "wasn't a
+stronger model — it was the structure" of the skill/agent definitions around it. They also found
+that structure **rots**: offline accuracy fell from ~95% to ~65% in a month as the definitions
+drifted out of sync, so they moved to maintaining skills *as engineering* — in the same repo, with
+a skill update riding along on ~90% of changes.
+
+That's the case for agent-lint in one paragraph: **the definition is what determines whether an
+agent is reliable and safe — and it decays unless something checks it on every change.** agent-lint
+is that check. Its security rules are mapped to the **OWASP Top 10 for LLM Applications (2025)** and
+**MITRE ATLAS** (see [docs/threat-mapping.md](docs/threat-mapping.md)), and there's a runnable
+exploit PoC for the headline class in [examples/poc/](examples/poc/).
+
 ### What makes it different: it understands capabilities
 
 Most linters grep text. agent-lint parses each agent's **tool grant** and reasons about dangerous

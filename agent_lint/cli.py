@@ -66,15 +66,22 @@ _PROJECT_RULES = [
 
 def _list_rules() -> int:
     from .rules import TITLES
+    from .frameworks import short_refs
+
+    def line(code: str, title: str) -> str:
+        ref = short_refs(code)
+        return f"  {code}  {title}" + (f"   ({ref})" if ref else "")
+
     print("agent-lint rules:\n")
     for code, _ in all_rules():
-        print(f"  {code}  {TITLES.get(code, '')}")
+        print(line(code, TITLES.get(code, "")))
     print("\n  -- AL5xx: repo-level, run with --publish-check --")
     for code, title in _PROJECT_RULES:
-        print(f"  {code}  {title}")
+        print(line(code, title))
     total = len(all_rules()) + len(_PROJECT_RULES)
-    print(f"\n{total} rules. Disable inline with `<!-- agent-lint-disable AL202 -->` "
-          f"(or `# agent-lint-allow AL510` in code), or globally with --ignore.")
+    print(f"\n{total} rules, mapped to OWASP LLM Top 10 (2025) & MITRE ATLAS. Disable inline with "
+          f"`<!-- agent-lint-disable AL202 -->`\n(or `# agent-lint-allow AL510` in code), or "
+          f"globally with --ignore. Full reference: docs/rules.md, docs/threat-mapping.md.")
     return 0
 
 

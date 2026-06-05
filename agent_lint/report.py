@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .frameworks import refs_for, short_refs
 from .linter import LintReport
 from .models import Severity
 
@@ -36,9 +37,11 @@ def render_human(report: LintReport, color: bool = True, root: Path | None = Non
         for f in r.findings:
             loc = f"{f.line}" if f.line else "—"
             col = c[f.severity.label]
+            ref = short_refs(f.rule)
+            ref_s = f"  {c['dim']}[{ref}]{c['reset']}" if ref else ""
             out.append(
                 f"  {col}{_GLYPH[f.severity.label]} {f.severity.label:<8}{c['reset']} "
-                f"{c['dim']}{loc:>4}{c['reset']}  {f.rule}  {f.message}"
+                f"{c['dim']}{loc:>4}{c['reset']}  {f.rule}  {f.message}{ref_s}"
             )
             out.append(f"        {c['dim']}↳ fix:{c['reset']} {f.fix}")
 
@@ -47,9 +50,11 @@ def render_human(report: LintReport, color: bool = True, root: Path | None = Non
         for f in report.project_findings:
             col = c[f.severity.label]
             loc = f"{f.path}:{f.line}" if f.line else (f.path or "—")
+            ref = short_refs(f.rule)
+            ref_s = f"  {c['dim']}[{ref}]{c['reset']}" if ref else ""
             out.append(
                 f"  {col}{_GLYPH[f.severity.label]} {f.severity.label:<8}{c['reset']} "
-                f"{c['dim']}{loc}{c['reset']}  {f.rule}  {f.message}"
+                f"{c['dim']}{loc}{c['reset']}  {f.rule}  {f.message}{ref_s}"
             )
             out.append(f"        {c['dim']}↳ fix:{c['reset']} {f.fix}")
 
@@ -79,7 +84,7 @@ def render_json(report: LintReport, root: Path | None = None) -> str:
             "path": shown,
             "kind": r.definition.kind,
             "counts": r.counts,
-            "findings": [f.to_dict() for f in r.findings],
+            "findings": [{**f.to_dict(), "refs": refs_for(f.rule)} for f in r.findings],
         })
     return json.dumps({
         "version": 1,
@@ -104,10 +109,15 @@ _SARIF_LEVEL = {
 
 
 def _sarif_result(f, uri: str) -> dict:
+    refs = refs_for(f.rule)
+    cites = refs["owasp"] + refs["atlas"]
+    msg = f"{f.message}  Fix: {f.fix}"
+    if cites:
+        msg += "  [" + " · ".join(cites) + "]"
     return {
         "ruleId": f.rule,
         "level": _SARIF_LEVEL[f.severity],
-        "message": {"text": f"{f.message}  Fix: {f.fix}"},
+        "message": {"text": msg},
         "locations": [{
             "physicalLocation": {
                 "artifactLocation": {"uri": uri},
