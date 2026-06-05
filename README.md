@@ -51,6 +51,14 @@ that structure **rots**: offline accuracy fell from ~95% to ~65% in a month as t
 drifted out of sync, so they moved to maintaining skills *as engineering* — in the same repo, with
 a skill update riding along on ~90% of changes.
 
+And it's where the work is moving. At Code w/ Claude SF 2026, the Director of Engineering for
+Claude Code described how, once agentic coding became the default, **the bottleneck moved from
+writing code to *verification, review, and security*** — "if coding throughput is no longer the
+bottleneck, every upstream and downstream process needs to be re-thought." Their own split: let the
+model handle style, obvious bugs, and spec drift; keep a human on **trust boundaries and
+security-sensitive code**. agentguard automates the *mechanical* half of that security review — the
+deterministic, checkable failure modes — so the human judgment goes where it actually matters.
+
 That's the case for agentguard in one paragraph: **the definition is what determines whether an
 agent is reliable and safe — and it decays unless something checks it on every change.** agentguard
 is that check. Its security rules are mapped to the **OWASP Top 10 for LLM Applications (2025)** and
