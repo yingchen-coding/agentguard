@@ -55,7 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
 _PROJECT_RULES = [
     ("AL500", "no LICENSE file (repo legally unusable when public)"),
     ("AL501", "no README"),
-    ("AL502", "unresolved placeholder (YOUR_USERNAME, CHANGEME, …)"),
+    ("AL502", "unresolved placeholder (YOUR_USERNAME, CHANGEME, …)"),  # agent-lint-allow AL502
     ("AL503", "hardcoded secret committed in the repo"),
     ("AL510", "pipe-to-shell execution (curl … | sh)"),  # agent-lint-allow AL510
     ("AL511", "dynamic exec of decoded/remote content"),

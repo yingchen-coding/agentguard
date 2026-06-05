@@ -147,7 +147,7 @@ or depend on it. **Fix:** add a LICENSE (MIT/Apache-2.0).
 The first thing a visitor looks for. **Fix:** add a README.
 
 ### AL502 · unresolved placeholder · major
-Template stubs left in (`YOUR_USERNAME`, `CHANGEME`, `<your-…>`). Looks unfinished; breaks
+Template stubs left in (`YOUR_USERNAME`, `CHANGEME`, `<your-…>`). Looks unfinished; breaks <!-- agent-lint-allow AL502 -->
 links/badges. **Fix:** replace every placeholder before publishing.
 
 ### AL503 · committed secret · critical

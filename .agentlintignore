@@ -3,6 +3,8 @@
 tests/fixtures
 tests/test_rules.py
 tests/test_project.py
+# The accuracy benchmark embeds vulnerable/secret definitions as labeled test data.
+eval/benchmark.py
 # The rule/pattern library defines the malware & secret signatures as regex literals,
 # so it necessarily "contains" them (semgrep excludes its own rules dir for the same reason).
 agent_lint/rules.py

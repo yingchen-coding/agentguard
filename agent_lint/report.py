@@ -156,7 +156,7 @@ def render_sarif(report: LintReport, root: Path | None = None) -> str:
         "runs": [{
             "tool": {"driver": {
                 "name": "agent-lint",
-                "informationUri": "https://github.com/YOUR_USERNAME/agent-lint",
+                "informationUri": "https://github.com/yingchen-coding/agent-lint",
                 "rules": list(rules_seen.values()),
             }},
             "results": results,
