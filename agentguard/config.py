@@ -1,4 +1,4 @@
-"""Project configuration via `[tool.agent-lint]` in pyproject.toml or a `.agent-lint.toml` file.
+"""Project configuration via `[tool.agentguard]` in pyproject.toml or a `.agentguard.toml` file.
 
 Honors the zero-dependency promise: uses the stdlib `tomllib` (Python 3.11+) when available, and
 falls back to a tiny parser scoped to the one table we read on older interpreters.
@@ -18,14 +18,14 @@ _KEYS = {"select", "ignore", "fail-at", "fail_at", "publish-check", "publish_che
 
 
 def load_config(root: Path) -> dict:
-    """Return the merged agent-lint config dict for a scan root, or {} if none."""
-    for name in (".agent-lint.toml", "agent-lint.toml"):
+    """Return the merged agentguard config dict for a scan root, or {} if none."""
+    for name in (".agentguard.toml", "agentguard.toml"):
         f = root / name
         if f.is_file():
-            return _parse(f.read_text(encoding="utf-8", errors="replace"), table="agent-lint")
+            return _parse(f.read_text(encoding="utf-8", errors="replace"), table="agentguard")
     pp = root / "pyproject.toml"
     if pp.is_file():
-        return _parse(pp.read_text(encoding="utf-8", errors="replace"), table="tool.agent-lint")
+        return _parse(pp.read_text(encoding="utf-8", errors="replace"), table="tool.agentguard")
     return {}
 
 

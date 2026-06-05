@@ -2,7 +2,7 @@
 
 > **OWASP LLM01:2025 Prompt Injection · MITRE ATLAS AML.T0051.001 (Indirect Prompt Injection)**
 
-This is the vulnerability class `agent-lint` exists to catch (rule **AL300**), demonstrated
+This is the vulnerability class `agentguard` exists to catch (rule **AL300**), demonstrated
 end-to-end with a script you can run. Nothing dangerous executes; no network calls are made.
 
 ```bash
@@ -49,8 +49,8 @@ attacker command rather than running it, which is all that's needed to prove the
 isn't "this exact string always fires on model X"; it's that **the chain is unguarded**, and an
 unguarded chain to a shell is not where your security posture should be.
 
-## The point: agent-lint catches it before it ships
+## The point: agentguard catches it before it ships
 
-`agent-lint examples/poc/vulnerable_agent.md` flags **AL300** (injection→action chain) and tells
+`agentguard examples/poc/vulnerable_agent.md` flags **AL300** (injection→action chain) and tells
 you the fix — add the guard, scope the tools. Run it on `hardened_agent.md` and it's clean. That's
 the whole product: turning an invisible, shippable exposure into a finding in CI.

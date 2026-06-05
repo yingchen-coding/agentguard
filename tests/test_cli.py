@@ -3,8 +3,8 @@ import json
 from pathlib import Path
 
 
-from agent_lint.cli import main
-from agent_lint.config import load_config
+from agentguard.cli import main
+from agentguard.config import load_config
 
 FIX = Path(__file__).parent / "fixtures"
 
@@ -78,15 +78,15 @@ def test_baseline_roundtrip(tmp_path, capsys):
 
 def test_config_pyproject(tmp_path):
     (tmp_path / "pyproject.toml").write_text(
-        "[tool.agent-lint]\nignore = [\"AL206\"]\nfail-at = \"critical\"\n")
+        "[tool.agentguard]\nignore = [\"AL206\"]\nfail-at = \"critical\"\n")
     cfg = load_config(tmp_path)
     assert cfg["ignore"] == {"AL206"}
     assert cfg["fail_at"] == "critical"
 
 
 def test_config_dotfile(tmp_path):
-    (tmp_path / ".agent-lint.toml").write_text(
-        "[agent-lint]\nselect = [\"AL300\", \"AL301\"]\npublish-check = true\n")
+    (tmp_path / ".agentguard.toml").write_text(
+        "[agentguard]\nselect = [\"AL300\", \"AL301\"]\npublish-check = true\n")
     cfg = load_config(tmp_path)
     assert cfg["select"] == {"AL300", "AL301"}
     assert cfg["publish_check"] is True
@@ -97,7 +97,7 @@ def test_config_ignored_with_no_config(tmp_path, capsys):
     (tmp_path / "agents").mkdir()
     (tmp_path / "agents" / "a.md").write_text(
         "---\nname: a\ndescription: Use this when doing a general task for the user\n---\n# A\nDo it.\n")
-    (tmp_path / "pyproject.toml").write_text("[tool.agent-lint]\nignore = [\"AL302\"]\n")
+    (tmp_path / "pyproject.toml").write_text("[tool.agentguard]\nignore = [\"AL302\"]\n")
     main([str(tmp_path), "--no-config", "--format", "json"])
     data = json.loads(capsys.readouterr().out)
     rules = {x["rule"] for f in data["files"] for x in f["findings"]}

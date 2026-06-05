@@ -1,4 +1,4 @@
-"""Core data models for agent-lint."""
+"""Core data models for agentguard."""
 from __future__ import annotations
 
 import re
@@ -128,7 +128,7 @@ class Definition:
 
 
 _FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n?", re.DOTALL)
-_DISABLE_RE = re.compile(r"agent-lint-disable\s+([A-Z0-9, ]+)")
+_DISABLE_RE = re.compile(r"agentguard-disable\s+([A-Z0-9, ]+)")
 
 
 def _parse_frontmatter(text: str) -> tuple[dict, str, int]:

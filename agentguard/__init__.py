@@ -1,4 +1,4 @@
-"""agent-lint — a deterministic linter for AI agent, command, and skill definitions.
+"""agentguard — a deterministic linter for AI agent, command, and skill definitions.
 
 ESLint for the prompts that drive your agents: it parses the markdown + frontmatter
 definitions Claude Code (and similar harnesses) load, and flags the failure patterns that

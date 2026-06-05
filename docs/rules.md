@@ -1,12 +1,12 @@
-# agent-lint rule reference
+# agentguard rule reference
 
 Every rule, why it exists, and how to fix it. Rules are grouped into families by the digit after
 `AL`. Severities: `critical` (likely wrong/dangerous behavior), `major` (plausible failure),
 `minor` (worth fixing), `info`.
 
-Suppress any finding inline — `<!-- agent-lint-disable AL202 -->` in a definition, or
-`# agent-lint-allow AL510` on a line of code. Skip whole paths with a `.agentlintignore`, or set
-defaults in `[tool.agent-lint]`.
+Suppress any finding inline — `<!-- agentguard-disable AL202 -->` in a definition, or
+`# agentguard-allow AL510` on a line of code. Skip whole paths with a `.agentguardignore`, or set
+defaults in `[tool.agentguard]`.
 
 ---
 
@@ -147,7 +147,7 @@ or depend on it. **Fix:** add a LICENSE (MIT/Apache-2.0).
 The first thing a visitor looks for. **Fix:** add a README.
 
 ### AL502 · unresolved placeholder · major
-Template stubs left in (`YOUR_USERNAME`, `CHANGEME`, `<your-…>`). Looks unfinished; breaks <!-- agent-lint-allow AL502 -->
+Template stubs left in (`YOUR_USERNAME`, `CHANGEME`, `<your-…>`). Looks unfinished; breaks <!-- agentguard-allow AL502 -->
 links/badges. **Fix:** replace every placeholder before publishing.
 
 ### AL503 · committed secret · critical

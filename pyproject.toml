@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agent-lint"
+name = "agentguard"
 version = "0.1.0"
 description = "A prompt-injection & capability scanner for AI agent, command, and skill definitions."
 readme = "README.md"
@@ -22,20 +22,20 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/yingchen-coding/agent-lint"
-Issues = "https://github.com/yingchen-coding/agent-lint/issues"
+Homepage = "https://github.com/yingchen-coding/agentguard"
+Issues = "https://github.com/yingchen-coding/agentguard/issues"
 
 [project.scripts]
-agent-lint = "agent_lint.cli:main"
+agentguard = "agentguard.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=7", "ruff>=0.6", "build>=1"]
 
 [tool.setuptools]
-packages = ["agent_lint"]
+packages = ["agentguard"]
 
 [tool.setuptools.package-data]
-agent_lint = ["py.typed"]
+agentguard = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

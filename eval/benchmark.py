@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""An honest accuracy benchmark for agent-lint's security rules.
+"""An honest accuracy benchmark for agentguard's security rules.
 
 Most "linter" projects report precision (few false positives) and stay quiet about recall (what
 they miss). This measures both, on a labeled set that deliberately includes **evasion cases** —
@@ -19,8 +19,8 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from agent_lint.linter import Linter  # noqa: E402
-from agent_lint.models import parse_definition  # noqa: E402
+from agentguard.linter import Linter  # noqa: E402
+from agentguard.models import parse_definition  # noqa: E402
 
 SECURITY_RULES = {"AL202", "AL203", "AL204", "AL300", "AL301", "AL302", "AL303",
                   "AL305", "AL306", "AL307", "AL308", "AL310"}
@@ -161,7 +161,7 @@ def main(argv: list[str]) -> int:
     recall = n_pos_hit / n_pos if n_pos else 1.0
     precision = n_neg_clean / n_neg if n_neg else 1.0
 
-    print("agent-lint security benchmark (includes adversarial evasion cases)\n" + "=" * 66)
+    print("agentguard security benchmark (includes adversarial evasion cases)\n" + "=" * 66)
     for status, name, missed, alarms, note in rows:
         if status == "ok" and not verbose:
             continue

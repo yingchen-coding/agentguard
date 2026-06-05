@@ -1,6 +1,6 @@
 # Threat-framework mapping
 
-agent-lint's security rules aren't ad-hoc — each maps to the **OWASP Top 10 for LLM Applications
+agentguard's security rules aren't ad-hoc — each maps to the **OWASP Top 10 for LLM Applications
 (2025)** and to **MITRE ATLAS** techniques. So a finding reads as "this is OWASP LLM01 / ATLAS
 AML.T0051.001, here in your definition," not "a regex fired."
 
@@ -33,5 +33,5 @@ carry no framework mapping by design.
 - OWASP Top 10 for LLM Applications (2025): <https://genai.owasp.org/llm-top-10/>
 - MITRE ATLAS: <https://atlas.mitre.org/>
 
-The machine-readable mapping lives in [`agent_lint/frameworks.py`](../agent_lint/frameworks.py);
+The machine-readable mapping lives in [`agentguard/frameworks.py`](../agentguard/frameworks.py);
 the CLI surfaces it inline on every security finding and in `--list-rules`.
