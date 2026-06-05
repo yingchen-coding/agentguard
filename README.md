@@ -123,6 +123,10 @@ Suppress a false positive for one file with a comment anywhere in it:
 | AL302 | major | **No least-privilege `tools:`** — agent inherits the entire toolset |
 | AL303 | critical | **Hardcoded secret** (API key, token, private key) in the definition |
 | AL305 | major | **Command/URL built from untrusted input** — shell / SQL / SSRF injection sink |
+| AL306 | minor | **Over-privilege** — a powerful tool (Bash/Write/…) is granted but never used |
+| AL307 | major | **Injection propagation** — spawns sub-agents on untrusted input, no guard |
+| AL308 | critical | **Human-in-the-loop disabled** — "delete/deploy without asking" on a destructive action |
+| AL310 | critical | **Command argument injection** — a slash-command splices `$ARGUMENTS` into a shell |
 
 <sub>*AL300 is `critical` when the agent explicitly holds a network/MCP reader **and** an exec sink; `major` for local-read-plus-exec or unrestricted agents.</sub>
 
@@ -177,14 +181,14 @@ Or just `pip install agent-lint && agent-lint .` as a step.
 ```
 agent_lint/
   models.py   parse frontmatter + body → Definition, incl. the parsed tool grant + capability model
-  rules.py    19 deterministic rules (Definition → Findings); AL3xx reason over capabilities
+  rules.py    23 deterministic rules (Definition → Findings); AL3xx reason over capabilities
   linter.py   discover files, run rules, sort findings, compute exit code
   report.py   human / json / sarif renderers
   cli.py      argument parsing + wiring
 ```
 
 Every rule is a pure function `(Definition) -> list[Finding]`, calibrated against real agents.
-Adding a rule is ~15 lines and a test. `pytest` runs the suite (45 tests).
+Adding a rule is ~15 lines and a test. `pytest` runs the suite (53 tests).
 
 ## Pairs with `adversarial-critic`
 

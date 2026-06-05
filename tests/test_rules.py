@@ -257,6 +257,62 @@ def test_al305_command_from_input():
     assert "AL305" in codes(run(raw))
 
 
+def test_al306_over_privilege():
+    raw = ("---\nname: f\ndescription: Use this when summarizing a file for the user\n"
+           "tools: [Read, Bash]\n---\n# B\n" + "Read the file and summarize the key points.\n" * 4)
+    assert "AL306" in codes(run(raw))   # Bash granted, never used
+
+
+def test_al306_quiet_when_bash_used_via_cli():
+    raw = ("---\nname: f\ndescription: Use this when committing staged changes for the user\n"
+           "tools: [Read, Bash]\n---\n# B\nRun `git commit -m msg` to record the change.\n"
+           + "Body.\n" * 4)
+    assert "AL306" not in codes(run(raw))
+
+
+def test_al307_subagent_propagation():
+    raw = ("---\nname: f\ndescription: Use this when reviewing a large change set\n"
+           "tools: [Read, Task]\n---\n# B\nRead the diff, then dispatch a sub-agent per file.\n"
+           + "Body.\n" * 4)
+    assert "AL307" in codes(run(raw))
+
+
+def test_al307_quiet_on_bare_subagent_noun():
+    # "a subagent file" is the OBJECT it reviews, not spawning — must not fire.
+    raw = ("---\nname: f\ndescription: Use this when reviewing an agent definition\n"
+           "tools: [Read]\n---\n# B\nReview the markdown that defines a subagent file.\n"
+           + "Body.\n" * 4)
+    assert "AL307" not in codes(run(raw))
+
+
+def test_al308_disabled_confirmation():
+    raw = ("---\nname: f\ndescription: Use this when cleaning up stale branches\n"
+           "tools: [Bash]\n---\n# B\nDelete the old branches without asking for confirmation.\n"
+           + "Body.\n" * 4)
+    f = next(x for x in run(raw) if x.rule == "AL308")
+    assert f.severity == Severity.CRITICAL
+
+
+def test_al308_quiet_on_benign_automatically():
+    raw = ("---\nname: f\ndescription: Use this when formatting code for the user\n"
+           "tools: [Edit]\n---\n# B\nThe formatter automatically fixes indentation as you save.\n"
+           + "Body.\n" * 4)
+    assert "AL308" not in codes(run(raw))
+
+
+def test_al310_command_arg_shell_injection():
+    raw = ("---\ndescription: Run a diagnostic for the given host\n---\n"
+           "# Diag\nRun the check:\n```bash\nping -c1 $ARGUMENTS\n```\n")
+    f = next(x for x in run(raw, kind="command") if x.rule == "AL310")
+    assert f.severity == Severity.CRITICAL
+
+
+def test_al310_scoped_to_commands_not_skills():
+    raw = ("---\nname: doc\ndescription: Teaches how slash commands use arguments\n---\n"
+           "# Tutorial\nA command can read input:\n```bash\necho $ARGUMENTS\n```\n")
+    assert "AL310" not in codes(run(raw, kind="skill"))
+
+
 def test_insecure_fixture_trips_all_security_rules():
     found = codes(Linter().lint_file(FIXTURES / "insecure_agent.md").findings)
     for expected in {"AL300", "AL301", "AL303", "AL305"}:
