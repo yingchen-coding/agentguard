@@ -1,0 +1,36 @@
+name: "agent-lint"
+description: "Lint AI agent / command / skill definitions for the failure patterns that make agents misbehave."
+author: "Ying Chen"
+branding:
+  icon: "check-circle"
+  color: "purple"
+
+inputs:
+  path:
+    description: "File or directory to lint"
+    required: false
+    default: "."
+  fail-at:
+    description: "Minimum severity that fails the run (info|minor|major|critical)"
+    required: false
+    default: "major"
+  args:
+    description: "Extra arguments passed verbatim to agent-lint"
+    required: false
+    default: ""
+  upload-sarif:
+    description: "Also emit agent-lint.sarif (upload it yourself with codeql-action/upload-sarif)"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: pip install --quiet "agent-lint==0.1.0" || pip install --quiet agent-lint
+    - shell: bash
+      run: |
+        if [ "${{ inputs.upload-sarif }}" = "true" ]; then
+          agent-lint --format sarif -o agent-lint.sarif ${{ inputs.args }} "${{ inputs.path }}" || true
+        fi
+        agent-lint --fail-at "${{ inputs.fail-at }}" ${{ inputs.args }} "${{ inputs.path }}"
