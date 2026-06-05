@@ -233,6 +233,19 @@ jobs:
 
 Or just `pip install agent-lint && agent-lint .` as a step.
 
+### Keep it from rotting
+
+Anthropic's own data is the argument for running this on *every* change, not once: their internal
+analytics accuracy fell from ~95% to ~65% in a month as the definitions drifted out of sync with
+the code, and the fix was to maintain them as engineering — a check on every PR. agent-lint is that
+check. Gate the PR so a definition can't regress unnoticed, and use a baseline so you only block on
+*new* problems:
+
+```bash
+agent-lint --update-baseline .agent-lint-baseline.json .   # once, commit the file
+agent-lint --baseline .agent-lint-baseline.json .          # in CI: fails only on regressions
+```
+
 ---
 
 ## How it works
