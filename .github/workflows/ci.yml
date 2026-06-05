@@ -28,6 +28,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
       - run: pytest -q
+      - run: python3 eval/benchmark.py   # gates on zero false alarms; reports recall
 
   self-lint:
     # agent-lint lints its own example definitions and runs its own supply-chain check — dogfooding.
