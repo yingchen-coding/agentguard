@@ -93,6 +93,12 @@ breakdown, and the exact command to regenerate every number.
 > false positives** across Anthropic's entire shipped plugin set. A scanner that cries wolf is
 > worse than none — every FP found during calibration was fixed, not shipped.
 
+**Measured, not asserted.** A labeled benchmark (`eval/benchmark.py`, run with `make bench`) —
+including adversarial *evasion* cases worded to dodge the heuristics — reports **100% precision
+(zero false alarms on safe agents) and 92% recall**, with the one miss documented as the honest
+boundary of lexical detection. Both precision and recall are reported; the CI gate trips on any
+false alarm.
+
 ---
 
 ## Install
