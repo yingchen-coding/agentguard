@@ -1,6 +1,7 @@
 """The engine: discover definition files, parse them, run every enabled rule, collect findings."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from .rules import all_rules
 # Files we treat as agent/command/skill definitions.
 _DEF_DIRS = {"agents", "commands", "skills"}
 _SKIP_NAMES = {"readme.md", "license.md", "changelog.md", "contributing.md", "code_of_conduct.md"}
+_SKIP_WALK_DIRS = {".git", "node_modules", ".venv", "venv", "dist", "build", "__pycache__"}
 
 
 @dataclass
@@ -115,13 +117,12 @@ def discover(paths: list[Path]) -> list[Path]:
             continue
         if not p.is_dir():
             continue
+        # Walk once, pruning heavy dirs during traversal (not after).
+        mds = list(_walk_md(p))
         structured = any((p / d).is_dir() for d in _DEF_DIRS) or \
-            any(part in _DEF_DIRS for sub in p.rglob("*.md") for part in sub.parts)
-        for md in p.rglob("*.md"):
+            any(part.lower() in _DEF_DIRS for md in mds for part in md.parts)
+        for md in mds:
             if md.name.lower() in _SKIP_NAMES:
-                continue
-            if any(seg in {".git", "node_modules", ".venv", "venv", "dist", "build"}
-                   for seg in md.parts):
                 continue
             in_def_dir = any(part.lower() in _DEF_DIRS for part in md.parts)
             if structured and not in_def_dir:
@@ -130,6 +131,14 @@ def discover(paths: list[Path]) -> list[Path]:
                 continue
             found.add(md.resolve())
     return sorted(found)
+
+
+def _walk_md(root: Path):
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in _SKIP_WALK_DIRS]
+        for fn in filenames:
+            if fn.lower().endswith(".md"):
+                yield Path(dirpath) / fn
 
 
 def _has_frontmatter(path: Path) -> bool:
