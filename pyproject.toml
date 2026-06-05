@@ -34,5 +34,12 @@ dev = ["pytest>=7"]
 [tool.setuptools]
 packages = ["agent_lint"]
 
+[tool.setuptools.package-data]
+agent_lint = ["py.typed"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"

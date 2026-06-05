@@ -1,0 +1,9 @@
+version: 2
+updates:
+  # Keep GitHub Actions pinned and current (the only external supply chain we have).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
