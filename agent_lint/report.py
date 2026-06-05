@@ -42,6 +42,17 @@ def render_human(report: LintReport, color: bool = True, root: Path | None = Non
             )
             out.append(f"        {c['dim']}↳ fix:{c['reset']} {f.fix}")
 
+    if report.project_findings:
+        out.append(f"\n{c['bold']}project (publish & supply-chain){c['reset']}")
+        for f in report.project_findings:
+            col = c[f.severity.label]
+            loc = f"{f.path}:{f.line}" if f.line else (f.path or "—")
+            out.append(
+                f"  {col}{_GLYPH[f.severity.label]} {f.severity.label:<8}{c['reset']} "
+                f"{c['dim']}{loc}{c['reset']}  {f.rule}  {f.message}"
+            )
+            out.append(f"        {c['dim']}↳ fix:{c['reset']} {f.fix}")
+
     tc = report.total_counts
     n_files = len(report.results)
     if report.findings:
@@ -78,6 +89,9 @@ def render_json(report: LintReport, root: Path | None = None) -> str:
             "counts": report.total_counts,
         },
         "files": files,
+        "project": [
+            {**f.to_dict(), "path": f.path} for f in report.project_findings
+        ],
     }, indent=2)
 
 
@@ -87,6 +101,20 @@ _SARIF_LEVEL = {
     Severity.MINOR: "warning",
     Severity.INFO: "note",
 }
+
+
+def _sarif_result(f, uri: str) -> dict:
+    return {
+        "ruleId": f.rule,
+        "level": _SARIF_LEVEL[f.severity],
+        "message": {"text": f"{f.message}  Fix: {f.fix}"},
+        "locations": [{
+            "physicalLocation": {
+                "artifactLocation": {"uri": uri},
+                "region": {"startLine": max(f.line, 1)},
+            }
+        }],
+    }
 
 
 def render_sarif(report: LintReport, root: Path | None = None) -> str:
@@ -104,17 +132,14 @@ def render_sarif(report: LintReport, root: Path | None = None) -> str:
                 "shortDescription": {"text": f.message[:120]},
                 "defaultConfiguration": {"level": _SARIF_LEVEL[f.severity]},
             })
-            results.append({
-                "ruleId": f.rule,
-                "level": _SARIF_LEVEL[f.severity],
-                "message": {"text": f"{f.message}  Fix: {f.fix}"},
-                "locations": [{
-                    "physicalLocation": {
-                        "artifactLocation": {"uri": uri},
-                        "region": {"startLine": max(f.line, 1)},
-                    }
-                }],
-            })
+            results.append(_sarif_result(f, uri))
+    for f in report.project_findings:
+        rules_seen.setdefault(f.rule, {
+            "id": f.rule,
+            "shortDescription": {"text": f.message[:120]},
+            "defaultConfiguration": {"level": _SARIF_LEVEL[f.severity]},
+        })
+        results.append(_sarif_result(f, f.path or "."))
     return json.dumps({
         "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
         "version": "2.1.0",

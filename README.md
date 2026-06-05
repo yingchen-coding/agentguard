@@ -95,6 +95,7 @@ Python ≥ 3.9, zero dependencies.
 agent-lint                       # scan ./  (auto-discovers agents/, commands/, skills/)
 agent-lint path/to/agent.md      # one file
 agent-lint --select AL300,AL301,AL302,AL303,AL305 .   # security rules only
+agent-lint --publish-check .     # + repo checks: LICENSE, README, secrets, malware
 agent-lint --format sarif -o agent-lint.sarif .       # GitHub code-scanning
 agent-lint --format json .                            # machine-readable
 agent-lint --fail-at critical .                       # only block on critical
@@ -129,6 +130,23 @@ Suppress a false positive for one file with a comment anywhere in it:
 | AL310 | critical | **Command argument injection** — a slash-command splices `$ARGUMENTS` into a shell |
 
 <sub>*AL300 is `critical` when the agent explicitly holds a network/MCP reader **and** an exec sink; `major` for local-read-plus-exec or unrestricted agents.</sub>
+
+**AL5xx — distribution & supply-chain** (`--publish-check`, repo-level — for publishing your own
+plugin *or* vetting someone else's before you install it):
+
+| Code | Sev | What it catches |
+|------|-----|-----------------|
+| AL500 | major | **No LICENSE** — a public repo with no license is "all rights reserved"; nobody may legally use it |
+| AL501 | minor | No README |
+| AL502 | major | **Unresolved placeholder** (`YOUR_USERNAME`, `CHANGEME`, …) shipped in |
+| AL503 | critical | **Committed secret** anywhere in the repo (not just definitions) |
+| AL510 | critical | **Pipe-to-shell** install (`curl … \| sh`) — runs arbitrary remote code |
+| AL511 | critical | **Dynamic exec** of decoded/remote payloads (`eval(base64.b64decode(...))`) |
+| AL512 | critical | **Reverse-shell / raw-socket** signature (`bash -i >& /dev/tcp/…`) |
+| AL513 | major | **Malicious install hook** — `pre/postinstall` running shell/network |
+
+Malware checks scan *code* files only (a README discussing `curl \| sh` is not malware). Escape
+hatches: a `.agentlintignore` (gitignore-style) and inline `# agent-lint-allow AL510`.
 
 **AL2xx — robustness & safety**
 
@@ -188,7 +206,7 @@ agent_lint/
 ```
 
 Every rule is a pure function `(Definition) -> list[Finding]`, calibrated against real agents.
-Adding a rule is ~15 lines and a test. `pytest` runs the suite (53 tests).
+Adding a rule is ~15 lines and a test. `pytest` runs the suite (66 tests).
 
 ## Pairs with `adversarial-critic`
 

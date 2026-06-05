@@ -1,0 +1,27 @@
+name: False positive
+description: A rule fired on something that is actually fine
+labels: [false-positive]
+body:
+  - type: markdown
+    attributes:
+      value: "False positives are the most valuable reports — they're how the rules get calibrated."
+  - type: input
+    id: rule
+    attributes:
+      label: Rule code
+      placeholder: e.g. AL202
+    validations:
+      required: true
+  - type: textarea
+    id: snippet
+    attributes:
+      label: The definition that wrongly tripped it
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this is not actually a problem
+    validations:
+      required: true
