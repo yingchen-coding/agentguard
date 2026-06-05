@@ -1,0 +1,9 @@
+# Paths agent-lint's own publish-check should skip (gitignore-style).
+# Test fixtures intentionally contain the patterns the rules detect.
+tests/fixtures
+tests/test_rules.py
+tests/test_project.py
+# The rule/pattern library defines the malware & secret signatures as regex literals,
+# so it necessarily "contains" them (semgrep excludes its own rules dir for the same reason).
+agent_lint/rules.py
+agent_lint/project.py

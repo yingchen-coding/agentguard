@@ -33,10 +33,11 @@ class FileResult:
 @dataclass
 class LintReport:
     results: list[FileResult] = field(default_factory=list)
+    project_findings: list[Finding] = field(default_factory=list)  # AL5xx, repo-level
 
     @property
     def findings(self) -> list[Finding]:
-        return [f for r in self.results for f in r.findings]
+        return [f for r in self.results for f in r.findings] + self.project_findings
 
     @property
     def total_counts(self) -> dict[str, int]:
@@ -44,6 +45,8 @@ class LintReport:
         for r in self.results:
             for k, v in r.counts.items():
                 c[k] += v
+        for f in self.project_findings:
+            c[f.severity.label] += 1
         return c
 
     @property

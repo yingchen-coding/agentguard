@@ -27,6 +27,7 @@ class Finding:
     fix: str           # how to fix it
     line: int = 0      # 1-based; 0 = file-level
     column: int = 0
+    path: str = ""     # set for project-level findings that name a specific file
 
     def to_dict(self) -> dict:
         return {

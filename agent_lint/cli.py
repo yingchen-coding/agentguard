@@ -38,9 +38,24 @@ def build_parser() -> argparse.ArgumentParser:
                    help="skip these rule codes (comma-separated)")
     p.add_argument("--no-color", action="store_true", help="disable ANSI color")
     p.add_argument("-o", "--output", metavar="FILE", help="write report to FILE instead of stdout")
+    p.add_argument("--publish-check", action="store_true",
+                   help="also run repo-level distribution/supply-chain checks (AL5xx): LICENSE, "
+                        "README, leftover placeholders, committed secrets, and malware signatures")
     p.add_argument("--list-rules", action="store_true", help="print the rule catalog and exit")
     p.add_argument("--version", action="version", version=f"agent-lint {__version__}")
     return p
+
+
+_PROJECT_RULES = [
+    ("AL500", "no LICENSE file (repo legally unusable when public)"),
+    ("AL501", "no README"),
+    ("AL502", "unresolved placeholder (YOUR_USERNAME, CHANGEME, …)"),
+    ("AL503", "hardcoded secret committed in the repo"),
+    ("AL510", "pipe-to-shell execution (curl … | sh)"),  # agent-lint-allow AL510
+    ("AL511", "dynamic exec of decoded/remote content"),
+    ("AL512", "reverse-shell / raw-socket signature"),
+    ("AL513", "install hook runs the shell/network (pre/postinstall)"),
+]
 
 
 def _list_rules() -> int:
@@ -48,8 +63,12 @@ def _list_rules() -> int:
     print("agent-lint rules:\n")
     for code, _ in all_rules():
         print(f"  {code}  {TITLES.get(code, '')}")
-    print(f"\n{len(all_rules())} rules. Disable inline with "
-          f"`<!-- agent-lint-disable AL202 -->` or globally with --ignore.")
+    print("\n  -- AL5xx: repo-level, run with --publish-check --")
+    for code, title in _PROJECT_RULES:
+        print(f"  {code}  {title}")
+    total = len(all_rules()) + len(_PROJECT_RULES)
+    print(f"\n{total} rules. Disable inline with `<!-- agent-lint-disable AL202 -->` "
+          f"(or `# agent-lint-allow AL510` in code), or globally with --ignore.")
     return 0
 
 
@@ -73,6 +92,15 @@ def main(argv: list[str] | None = None) -> int:
     root = None
     if len(paths) == 1 and paths[0].is_dir():
         root = paths[0].resolve()
+
+    if args.publish_check:
+        from .project import scan_project
+        scan_root = paths[0] if (len(paths) == 1 and paths[0].is_dir()) else Path(".")
+        pf = scan_project(scan_root)
+        if linter.select is not None:
+            pf = [f for f in pf if f.rule in linter.select]
+        pf = [f for f in pf if f.rule not in linter.ignore]
+        report.project_findings = pf
 
     color = not args.no_color and sys.stdout.isatty() and args.output is None
     if args.format == "json":
