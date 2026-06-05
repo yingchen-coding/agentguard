@@ -1,22 +1,23 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-lint"
 version = "0.1.0"
-description = "ESLint for AI agents — a deterministic linter for agent, command, and skill definitions."
+description = "A prompt-injection & capability scanner for AI agent, command, and skill definitions."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Ying Chen" }]
 requires-python = ">=3.9"
-keywords = ["claude-code", "agents", "llm", "linter", "prompt-engineering", "ci", "agent-reliability"]
+keywords = ["claude-code", "agents", "llm", "security", "prompt-injection", "linter", "ci", "agent-reliability"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Security",
 ]
 dependencies = []
 
