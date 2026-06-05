@@ -1,6 +1,6 @@
 # agent-lint
 
-[![CI](https://github.com/YOUR_USERNAME/agent-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/agent-lint/actions)
+[![CI](https://github.com/yingchen-coding/agent-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/yingchen-coding/agent-lint/actions)
 [![PyPI](https://img.shields.io/pypi/v/agent-lint.svg)](https://pypi.org/project/agent-lint/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://pypi.org/project/agent-lint/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -106,7 +106,7 @@ false alarm.
 ```bash
 pip install agent-lint
 # or from source:
-git clone https://github.com/YOUR_USERNAME/agent-lint && cd agent-lint && pip install -e .
+git clone https://github.com/yingchen-coding/agent-lint && cd agent-lint && pip install -e .
 ```
 
 Python ≥ 3.9, zero dependencies.
@@ -185,7 +185,7 @@ plugin *or* vetting someone else's before you install it):
 |------|-----|-----------------|
 | AL500 | major | **No LICENSE** — a public repo with no license is "all rights reserved"; nobody may legally use it |
 | AL501 | minor | No README |
-| AL502 | major | **Unresolved placeholder** (`YOUR_USERNAME`, `CHANGEME`, …) shipped in |
+| AL502 | major | **Unresolved placeholder** (template stubs like `CHANGEME`, `<your-org>`) shipped in | <!-- agent-lint-allow AL502 -->
 | AL503 | critical | **Committed secret** anywhere in the repo (not just definitions) |
 | AL510 | critical | **Pipe-to-shell** install (`curl … \| sh`) — runs arbitrary remote code |
 | AL511 | critical | **Dynamic exec** of decoded/remote payloads (`eval(base64.b64decode(...))`) |
@@ -230,7 +230,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: YOUR_USERNAME/agent-lint@v0.1.0
+      - uses: yingchen-coding/agent-lint@v0.1.0
         with:
           path: .claude
           fail-at: major
@@ -272,7 +272,7 @@ Adding a rule is ~15 lines and a test. `pytest` runs the suite (66 tests).
 
 agent-lint is the deterministic layer — instant, free, every commit. For the judgment-heavy review
 (internal contradictions, subtle coverage gaps), pair it with
-[`adversarial-critic`](https://github.com/YOUR_USERNAME/agent-armor), an LLM agent that red-teams a
+[`adversarial-critic`](https://github.com/yingchen-coding/agent-armor), an LLM agent that red-teams a
 definition across 10 dimensions. Scan in CI; critique before you ship something big.
 
 ## License
