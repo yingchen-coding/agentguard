@@ -29,7 +29,7 @@ Issues = "https://github.com/YOUR_USERNAME/agent-lint/issues"
 agent-lint = "agent_lint.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+dev = ["pytest>=7", "ruff>=0.6", "build>=1"]
 
 [tool.setuptools]
 packages = ["agent_lint"]
