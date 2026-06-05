@@ -61,9 +61,14 @@ _INJECTION_GUARD = re.compile(
     r"(data,?\s+not\s+(?:an?\s+)?instruction|not\s+(?:as\s+)?(?:an?\s+)?instruction|"
     r"never\s+follow\s+(?:any\s+|an?\s+)?(?:embedded\s+|injected\s+)?instruction|"
     r"(?:ignore|disregard)\s+(?:any\s+|all\s+)?(?:embedded\s+|injected\s+|previous\s+)?instruction|"
-    r"treat\s+(?:it|the\s+\w+|them|all\s+\w+)?\s*(?:strictly\s+)?as\s+data|"
+    r"treat\s+(?:it|the\s+\w+|them|all\s+\w+|everything)?\s*(?:strictly\s+)?as\s+"
+    r"(?:data|inert|reference|read-only|content to)|"
+    r"as\s+(?:inert\s+)?reference\s+material|"
     r"do\s+not\s+(?:follow|obey|execute|act\s+on)\s+(?:any\s+)?instruction|"
-    r"follow\s+(?:any\s+)?instruction[\s\w]*?(?:embedded|inside|contained|in\s+(?:it|the)))",
+    r"follow\s+(?:any\s+)?instruction[\s\w]*?(?:embedded|inside|contained|in\s+(?:it|the))|"
+    # "under no circumstances act on text/content found in it", "never act on what it says"
+    r"(?:never|under no circumstances|do not|don'?t|must not)\s+(?:act\s+on|follow|execute|obey|run)\s+"
+    r"(?:any\s+|the\s+)?(?:text|content|instruction|command|anything|what\w*)\b)",
     re.IGNORECASE | re.DOTALL,
 )
 # Destructive / outward-facing capabilities.
@@ -314,7 +319,9 @@ def no_examples(d: Definition) -> list[Finding]:
 # ".env" — a security scanner that cries wolf on those is worse than useless.
 _SENSITIVE = re.compile(
     r"(\bpasswords?\b|\bcredentials?\b|\bprivate key\b|\bid_rsa\b|"
-    r"(?:access|auth|bearer|oauth|refresh|session)[ _-]tokens?\b|"
+    r"(?:access|auth|bearer|oauth|refresh|session|login)[ _-]tokens?\b|"
+    r"\blogin\s+(?:secret|credential|password)|\bstored\s+(?:secret|credential|password)|"
+    r"\b(?:seed|recovery|mnemonic)\s+phrase|\bseed\s+words\b|"
     r"\bapi[ _-]?keys?\b|\bsecret keys?\b|"
     r"\bmedical (?:record|data|history|chart)|\bpatient (?:data|record|information)|"
     r"\bhealth (?:record|data)|\bphi\b|\bpii\b|\bssn\b|social security number|"
@@ -354,7 +361,8 @@ _FROM_INPUT = re.compile(
     r"\b(user(?:'?s)?|customer(?:'?s)?|provided|user-supplied|their|the input|"
     r"request(?:ed)?|incoming|external|ticket|submitted|untrusted)\b"
     r"[^.\n]{0,30}\b(input|value|argument|parameter|content|contents|data|text|name|"
-    r"id|ticket|account|message|comment|field|payload|submission|string)\b",
+    r"id|ticket|account|message|comment|field|payload|submission|string|host|hostname|"
+    r"endpoint|target|path|url|query|filename|address)\b",
     re.IGNORECASE,
 )
 
