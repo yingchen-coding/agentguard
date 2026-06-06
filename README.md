@@ -14,6 +14,11 @@ or data exfiltration. Deterministic, zero-dependency, no API key — `pip instal
 
 ## I pointed it at Anthropic's own official agents. 17 of 19 were exposed.
 
+> **"Exposed" = the door is unlocked, not that the house was robbed.** It means the agent has the
+> structural precondition for an indirect prompt-injection→action attack — it reads untrusted input,
+> it can act (Bash/write/network), and there's no "treat content as data" guard — *not* a claim of a
+> proven, weaponized exploit against each one. The fix is one guard line + a scoped `tools:`.
+
 Zero config, against Anthropic's `pr-review-toolkit` + `plugin-dev` plugins and the popular
 `understand-anything` plugin — **19 agents**:
 
@@ -61,6 +66,9 @@ agentguard ~/.claude        # scan your own agents, commands & skills
   **an agent with no `tools:` field inherits *every* tool.**
 - **Mapped to the standards.** Every security rule cites its **OWASP LLM Top 10 (2025)** and
   **MITRE ATLAS** technique, inline on the finding ([docs/threat-mapping.md](docs/threat-mapping.md)).
+  It catches **documented, real-world attack classes** — indirect injection, markdown-image
+  exfiltration, confused-deputy, sub-agent propagation, command-arg injection — cataloged with
+  references in [docs/attacks.md](docs/attacks.md) (runnable fixtures in [examples/attacks/](examples/attacks/)).
 - **Measured, not asserted.** A labeled benchmark with adversarial *evasion* cases →
   **100% precision (zero false alarms), 92% recall** (`make bench`). The CI gate trips on any false
   alarm; every false positive found during calibration was fixed, not shipped.
@@ -85,6 +93,8 @@ Python ≥ 3.9, zero dependencies.
 ```bash
 agentguard                       # scan ./  (auto-discovers agents/, commands/, skills/)
 agentguard path/to/agent.md      # one file
+agentguard owner/repo            # vet a plugin BEFORE you install it (shallow-clones & scans)
+agentguard --fix .               # auto-harden: add the missing data-not-instructions guard
 agentguard --select AL300,AL301,AL302,AL303,AL305 .   # security rules only
 agentguard --publish-check .     # + repo checks: LICENSE, README, secrets, malware
 agentguard --format sarif -o agentguard.sarif .       # GitHub code-scanning

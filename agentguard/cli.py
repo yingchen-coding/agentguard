@@ -45,6 +45,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="suppress findings recorded in FILE; report/fail only on new ones")
     p.add_argument("--update-baseline", metavar="FILE",
                    help="write the current findings to FILE as the new baseline and exit 0")
+    p.add_argument("--fix", action="store_true",
+                   help="auto-harden: append a 'treat read content as data, not instructions' "
+                        "guard to definitions missing one (append-only, idempotent, reviewable)")
     p.add_argument("--no-config", action="store_true",
                    help="ignore any [tool.agentguard] / .agentguard.toml config")
     p.add_argument("--list-rules", action="store_true", help="print the rule catalog and exit")
@@ -90,13 +93,37 @@ def main(argv: list[str] | None = None) -> int:
     if args.list_rules:
         return _list_rules()
 
-    paths = [Path(p) for p in args.paths]
-    missing = [p for p in paths if not p.exists()]
-    if missing:
-        print(f"agentguard: path not found: {', '.join(str(m) for m in missing)}",
-              file=sys.stderr)
-        return 2
+    # Remote scan: a single `owner/repo` or git URL is cloned to a temp dir ("vet before install").
+    remote_cleanup = None
+    if len(args.paths) == 1:
+        from .remote import looks_remote
+        if looks_remote(args.paths[0]):
+            from .remote import clone_to_temp
+            try:
+                dest = clone_to_temp(args.paths[0])
+            except RuntimeError as e:
+                print(f"agentguard: {e}", file=sys.stderr)
+                return 2
+            print(f"agentguard: scanning {args.paths[0]} (shallow clone)", file=sys.stderr)
+            paths = [dest]
+            remote_cleanup = dest
+    if remote_cleanup is None:
+        paths = [Path(p) for p in args.paths]
+        missing = [p for p in paths if not p.exists()]
+        if missing:
+            print(f"agentguard: path not found: {', '.join(str(m) for m in missing)}",
+                  file=sys.stderr)
+            return 2
 
+    try:
+        return _run(args, paths)
+    finally:
+        if remote_cleanup is not None:
+            from .remote import cleanup
+            cleanup(remote_cleanup)
+
+
+def _run(args, paths: list[Path]) -> int:
     # Common root for config discovery and tidy relative paths.
     root = paths[0].resolve() if (len(paths) == 1 and paths[0].is_dir()) else None
 
@@ -117,6 +144,19 @@ def main(argv: list[str] | None = None) -> int:
     linter = Linter(select=select, ignore=ignore or set())
     report = linter.lint(paths)
 
+    if args.fix:
+        from .fix import apply_fixes
+        changed = apply_fixes(report.results)
+        if changed:
+            print(f"agentguard --fix: added an injection guard to {len(changed)} file(s):",
+                  file=sys.stderr)
+            for c in changed:
+                print(f"  • {c}", file=sys.stderr)
+            report = linter.lint(paths)  # re-lint to reflect the fixes
+        else:
+            print("agentguard --fix: nothing auto-fixable (the guard fix applies to "
+                  "AL202/AL300/AL307).", file=sys.stderr)
+
     if publish_check:
         from .project import scan_project
         scan_root = paths[0] if (len(paths) == 1 and paths[0].is_dir()) else Path(".")
@@ -125,6 +165,13 @@ def main(argv: list[str] | None = None) -> int:
             pf = [f for f in pf if f.rule in linter.select]
         pf = [f for f in pf if f.rule not in linter.ignore]
         report.project_findings = pf
+
+    if not report.results and not report.project_findings:
+        scanned = args.paths[0] if args.paths else "."
+        print(f"agentguard: no agent / command / skill definitions found in {scanned} "
+              f"(looked for .md files under agents/ commands/ skills/, or with frontmatter).",
+              file=sys.stderr)
+        return 0
 
     if args.update_baseline:
         from .baseline import write_baseline

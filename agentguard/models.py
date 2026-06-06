@@ -152,8 +152,15 @@ def _parse_frontmatter(text: str) -> tuple[dict, str, int]:
     return fm, body, fm_end_line
 
 
+# Definitions are small (well under 100 KB). Cap what we feed the regex engine so a pathological
+# or oversized file can't cause catastrophic backtracking or memory blowup on a security tool.
+_MAX_ANALYZE_BYTES = 512 * 1024
+
+
 def parse_definition(path: Path) -> Definition:
     raw = path.read_text(encoding="utf-8", errors="replace")
+    if len(raw) > _MAX_ANALYZE_BYTES:
+        raw = raw[:_MAX_ANALYZE_BYTES]
     fm, body, fm_end = _parse_frontmatter(raw)
     parts = {p.lower() for p in path.parts}
     if "commands" in parts:
