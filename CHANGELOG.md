@@ -3,6 +3,20 @@
 All notable changes are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+- **`--fix`** — auto-harden: appends a "treat read content as data, not instructions" guard to
+  definitions missing one (AL202/AL300/AL307). Append-only, idempotent, reviewable in a diff.
+- **Remote scan** — `agentguard owner/repo` (or a git URL) shallow-clones and scans a repo you
+  don't have locally: vet a plugin *before* you install it.
+- **Real attack catalog** — `docs/attacks.md` maps documented, real-world attack classes (indirect
+  injection, markdown-image exfiltration, confused-deputy, sub-agent propagation, command-arg
+  injection, hidden instructions) to the rules that catch them, with runnable fixtures in
+  `examples/attacks/`.
+- **Robustness** — file-size cap on analyzed input (ReDoS / huge-file safety), graceful per-file
+  error handling, and a friendly "no definitions found" message.
+- README: an explicit "exposed = unlocked door, not proven exploit" clarifier under the headline.
+
 ## 0.1.0
 
 First release. A capability-aware security & reliability scanner for agent definitions.
