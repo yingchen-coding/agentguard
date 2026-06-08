@@ -12,23 +12,25 @@ markdown-with-frontmatter agent harness). It parses what **tools each agent can 
 prompt-injection and capability holes that turn *"summarize this file"* into remote code execution
 or data exfiltration. Deterministic, zero-dependency, no API key — install and run it in CI.
 
-## I pointed it at Anthropic's own official agents. 17 of 19 were exposed.
+## I scanned the entire Claude Code plugin marketplace. 91% had no injection guard.
 
 > **"Exposed" = the door is unlocked, not that the house was robbed.** It means the agent has the
 > structural precondition for an indirect prompt-injection→action attack — it reads untrusted input,
 > it can act (Bash/write/network), and there's no "treat content as data" guard — *not* a claim of a
 > proven, weaponized exploit against each one. The fix is one guard line + a scoped `tools:`.
 
-Zero config, against Anthropic's `pr-review-toolkit` + `plugin-dev` plugins and the popular
-`understand-anything` plugin — **19 agents**:
+Zero config, across the **official marketplace — 77 agent / command / skill definitions in 24
+plugins** (Anthropic's `pr-review-toolkit`, `plugin-dev`, `code-modernization`, and more):
 
 | | |
 |---|---:|
-| Can be driven to **run a command / write a file** by content they read (injection→action) | **17 / 19** |
-| Read untrusted input with **no "treat as data" guard** at all | **17 / 19** |
-| Declare **no `tools:`** — silently inherit full Bash + network | **15 / 19** |
+| Read untrusted input with **no "treat as data" guard** at all (AL202) | **70 / 77 (91%)** |
+| Can be driven to **run a command / write a file** by content they read (AL300) | **33 / 77** |
+| Carry at least one **security-class finding** (AL3xx) | **40 / 77 (52%)** |
 
-Every number reproducible: **[docs/findings.md](docs/findings.md)**.
+I then read **every critical finding by hand**, found five false-positive classes in my own rules,
+and fixed them — so the headline numbers are *verified*, not raw. Every number reproducible, with
+the verification write-up: **[docs/findings.md](docs/findings.md)**.
 
 ### What that looks like
 
