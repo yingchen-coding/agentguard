@@ -14,6 +14,7 @@ _COLOR = {
     "major": "\033[31m",       # red
     "minor": "\033[33m",       # yellow
     "info": "\033[36m",        # cyan
+    "good": "\033[32m",        # green
     "reset": "\033[0m",
     "dim": "\033[2m",
     "bold": "\033[1m",
@@ -71,6 +72,33 @@ def render_human(report: LintReport, color: bool = True, root: Path | None = Non
         out.append(f"\n{c['bold']}✓ clean{c['reset']} — {n_files} definition"
                    f"{'s' if n_files != 1 else ''} checked, no findings")
     return "\n".join(out)
+
+
+def grade(report: LintReport) -> tuple[str, int]:
+    """A 0–100 security score and letter grade for the whole scan. Severity-dominant: one critical
+    caps you at D, two at F; majors/minors chip away. Clean = A (100)."""
+    c = report.total_counts
+    score = max(0, min(100, 100 - 34 * c["critical"] - 7 * c["major"] - 2 * c["minor"]))
+    letter = ("A" if score >= 90 else "B" if score >= 80 else "C" if score >= 70
+              else "D" if score >= 60 else "F")
+    return letter, score
+
+
+def render_grade(report: LintReport, color: bool = True) -> str:
+    c = _COLOR if color else _NOCOLOR
+    letter, score = grade(report)
+    band = "good" if letter in "AB" else "critical" if letter in "DF" else "major"
+    tc = report.total_counts
+    n = len(report.results)
+    scope = f"{n} definition{'s' if n != 1 else ''}"
+    if report.project_findings:
+        p = len(report.project_findings)
+        scope += f", {p} project finding{'s' if p != 1 else ''}"
+    return (
+        f"{c['bold']}Security grade: {c[band]}{letter}{c['reset']}{c['bold']} ({score}/100)"
+        f"{c['reset']} — {tc['critical']} critical, {tc['major']} major, "
+        f"{tc['minor']} minor across {scope}"
+    )
 
 
 def render_json(report: LintReport, root: Path | None = None) -> str:
