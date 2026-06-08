@@ -292,6 +292,14 @@ def test_al305_command_from_input():
     assert "AL305" in codes(run(raw))
 
 
+def test_al305_quiet_when_sink_and_input_are_unrelated():
+    # A "format" noun and an "input" word far apart in the body must not falsely combine.
+    raw = ("---\nname: f\ndescription: Use this when scaffolding a plugin for the user\n---\n# B\n"
+           "Ask which migration file format? (SQL, code-based?).\n" + "Body line.\n" * 12 +
+           "Only load the legacy format if the user explicitly requests it.\n")
+    assert "AL305" not in codes(run(raw))
+
+
 def test_al306_over_privilege():
     raw = ("---\nname: f\ndescription: Use this when summarizing a file for the user\n"
            "tools: [Read, Bash]\n---\n# B\n" + "Read the file and summarize the key points.\n" * 4)

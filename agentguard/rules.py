@@ -607,10 +607,14 @@ def hardcoded_secret(d: Definition) -> list[Finding]:
 
 @rule("AL305", "builds a command/URL from untrusted input — injection sink")
 def dynamic_command_from_input(d: Definition) -> list[Finding]:
-    sink = _DYNAMIC_SINK.search(d.body)
-    if not sink or not _FROM_INPUT.search(d.body):
-        return []
     if _INJECTION_GUARD.search(d.body):
+        return []
+    # The untrusted input must be NEAR the sink, not merely both present somewhere in the body —
+    # otherwise "Migration file format? (SQL)" + an unrelated "user requests" elsewhere falsely
+    # combine. Require the from-input signal within the surrounding window of the sink.
+    sink = next((s for s in _DYNAMIC_SINK.finditer(d.body)
+                 if _FROM_INPUT.search(d.body[max(0, s.start() - 100):s.end() + 100])), None)
+    if sink is None:
         return []
     ln = d.body[:sink.start()].count("\n") + d.fm_end_line + 1
     return [Finding("AL305", Severity.MAJOR,

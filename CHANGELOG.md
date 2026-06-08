@@ -5,6 +5,10 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- **Precision:** AL305 (command/URL built from untrusted input) now requires the untrusted-input
+  signal to be *near* the sink rather than merely present somewhere in the body. This kills false
+  positives like "Migration file format? (SQL)" combining with an unrelated "user requests"
+  elsewhere. The real "construct a shell command from the user's input" pattern still fires.
 - **Precision:** AL204 (asserts/recommends without verify) no longer fires on a noun form
   ("extract the assertions/claims", "recommendations"), a section heading ("### Recommended
   Improvements"), or a debug "diagnose" near error/stderr/output. The grep-before-recommend safety
