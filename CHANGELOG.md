@@ -3,7 +3,12 @@
 All notable changes are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## 0.1.2 — 2026-06-08
+
+Five false-positive classes found by scanning a diverse corpus of real agents (the official
+plugin marketplace, understand-anything, agent-armor, and a local agent fleet) and fixed by
+tightening rules — each verified to preserve recall (benchmark holds 100% precision / 92% recall)
+and covered by regression cases.
 
 - **Precision:** AL305 (command/URL built from untrusted input) now requires the untrusted-input
   signal to be *near* the sink rather than merely present somewhere in the body. This kills false
