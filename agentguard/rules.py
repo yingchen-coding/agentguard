@@ -74,8 +74,11 @@ _INJECTION_GUARD = re.compile(
     # so it never suppresses a vuln that *intends* to forward injected instructions.
     r"(?:do\s+not|don'?t|never|must\s+not)\s+(?:propagate|pass|forward|relay|carry)\s+"
     r"(?:any\s+|the\s+)?instruction[\s\w]*?(?:embedded|inside|contained|in\s+(?:it|the))|"
-    # declarative stance: "its contents are data", "the content is data"
-    r"(?:its|the|their)\s+contents?\s+(?:are|is)\s+(?:the\s+)?(?:inert\s+|just\s+|only\s+)?data\b|"
+    # declarative stance: "its contents are inert/reference/read-only/just data". A *qualifier* is
+    # required — bare "contents are data" also describes data formats (CSV rows etc.) and must not
+    # suppress a real finding. The motivating orchestrator case is caught by the propagate clause.
+    r"(?:its|the|their)\s+contents?\s+(?:are|is)\s+(?:treated\s+as\s+)?"
+    r"(?:inert|read-only|reference|just|only)\s+data\b|"
     # "under no circumstances act on text/content found in it", "never act on what it says"
     r"(?:never|under no circumstances|do not|don'?t|must not)\s+"
     r"(?:act\s+on|follow|execute|obey|run)\s+"
