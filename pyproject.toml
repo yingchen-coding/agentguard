@@ -46,7 +46,7 @@ target-version = "py39"
 
 [tool.ruff.lint]
 # Beyond the defaults: bugbear, comprehensions, simplify, pyupgrade, isort, perf, pie, ruff.
-select = ["E", "F", "W", "B", "C4", "SIM", "UP", "I", "RUF", "PIE", "PERF"]
+select = ["E", "F", "W", "B", "C4", "SIM", "UP", "I", "RUF", "PIE", "PERF", "FA"]
 # Em/en dashes and arrows (–, →, ·) are intentional typography in findings and docs.
 ignore = ["RUF001", "RUF002", "RUF003"]
 
