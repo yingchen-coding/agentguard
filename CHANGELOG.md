@@ -3,6 +3,18 @@
 All notable changes are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+- **Precision:** AL200 (no output-format) now recognizes a markdown table template and more
+  phrasings ("your analysis output should be structured as", "in the following format", "produce a
+  JSON/table") as a specified output — fewer false positives on agents that define their output as
+  a table or with an adjective between "your" and "output".
+- **Precision / bug:** AL205 (no scope-boundary) was **case-sensitive**, so a sentence-initial
+  "Only ...", "Never ...", or "Do not ..." was missed and the agent wrongly flagged. Added
+  `re.IGNORECASE` and recognized more scope phrasings ("focus on", "what NOT to", "your job is X,
+  not Y", "exclusively/solely", "prioritize X over Y"). Marketplace AL205 21 → 10, none of the
+  genuine ones lost.
+
 ## 0.1.2 — 2026-06-08
 
 Five false-positive classes found by scanning a diverse corpus of real agents (the official

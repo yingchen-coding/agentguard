@@ -3,7 +3,7 @@
 > **Your AI agent can be hijacked by a comment in a file it reads.** agentguard catches it before it ships.
 
 [![CI](https://github.com/yingchen-coding/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/yingchen-coding/agentguard/actions)
-[![Release](https://img.shields.io/github/v/release/yingchen-coding/agentguard)](https://github.com/yingchen-coding/agentguard/releases)
+[![Tag](https://img.shields.io/github/v/tag/yingchen-coding/agentguard)](https://github.com/yingchen-coding/agentguard/tags)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
