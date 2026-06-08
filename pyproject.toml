@@ -29,7 +29,7 @@ Issues = "https://github.com/yingchen-coding/agentguard/issues"
 agentguard = "agentguard.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "ruff>=0.6", "build>=1"]
+dev = ["pytest>=7", "ruff>=0.6", "mypy>=1.8", "build>=1"]
 
 [tool.setuptools]
 packages = ["agentguard"]
@@ -43,3 +43,25 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py39"
+
+[tool.ruff.lint]
+# Beyond the defaults: bugbear, comprehensions, simplify, pyupgrade, isort, perf, pie, ruff.
+select = ["E", "F", "W", "B", "C4", "SIM", "UP", "I", "RUF", "PIE", "PERF"]
+# Em/en dashes and arrows (–, →, ·) are intentional typography in findings and docs.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests and the benchmark embed long inline definition strings on purpose.
+"tests/*" = ["E501"]
+"eval/*" = ["E501"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+files = ["agentguard"]
+
+# tomllib is a 3.11+ stdlib module; on the 3.9 baseline it's imported under a
+# try/except ModuleNotFoundError that falls back to a hand-rolled mini-parser.
+[[tool.mypy.overrides]]
+module = "tomllib"
+ignore_missing_imports = true

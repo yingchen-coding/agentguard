@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .frameworks import refs_for, short_refs
 from .linter import LintReport
-from .models import Severity
+from .models import Finding, Severity
 
 # ANSI — disabled automatically when stdout isn't a tty (handled in cli).
 _COLOR = {
@@ -19,7 +19,7 @@ _COLOR = {
     "dim": "\033[2m",
     "bold": "\033[1m",
 }
-_NOCOLOR = {k: "" for k in _COLOR}
+_NOCOLOR = dict.fromkeys(_COLOR, "")
 
 _GLYPH = {"critical": "✖", "major": "✖", "minor": "▲", "info": "·"}
 
@@ -136,7 +136,7 @@ _SARIF_LEVEL = {
 }
 
 
-def _sarif_result(f, uri: str) -> dict:
+def _sarif_result(f: Finding, uri: str) -> dict[str, object]:
     refs = refs_for(f.rule)
     cites = refs["owasp"] + refs["atlas"]
     msg = f"{f.message}  Fix: {f.fix}"
@@ -157,7 +157,7 @@ def _sarif_result(f, uri: str) -> dict:
 
 def render_sarif(report: LintReport, root: Path | None = None) -> str:
     """SARIF 2.1.0 — GitHub renders these inline on PRs via the code-scanning API."""
-    rules_seen: dict[str, dict] = {}
+    rules_seen: dict[str, dict[str, object]] = {}
     results = []
     for r in report.results:
         try:

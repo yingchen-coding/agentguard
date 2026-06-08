@@ -17,10 +17,11 @@ from __future__ import annotations
 import fnmatch
 import os
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 from .models import Finding, Severity
-from .rules import _SECRET_LITERAL, _SECRET_ASSIGN
+from .rules import _SECRET_ASSIGN, _SECRET_LITERAL
 
 # Inline escape hatch, e.g. `curl x | sh  # agentguard-allow AL510` (also honors -disable).
 _ALLOW_RE = re.compile(r"agentguard-(?:allow|disable)\s+([A-Z0-9, ]+)")
@@ -91,7 +92,7 @@ _INSTALL_HOOK = re.compile(
     re.IGNORECASE)
 
 
-def _walk(root: Path):
+def _walk(root: Path) -> Iterator[Path]:
     # Prune heavy dirs (node_modules, .git, .venv, …) during traversal rather than after — on a
     # repo with dependencies, rglob("*") would crawl thousands of files we'd only discard.
     for dirpath, dirnames, filenames in os.walk(root):
@@ -130,7 +131,8 @@ def scan_project(root: Path) -> list[Finding]:
     if not (names & _README_NAMES):
         findings.append(Finding(
             "AL501", Severity.MINOR,
-            "No README — the first thing a visitor looks for; without it the repo reads as abandoned.",
+            "No README — the first thing a visitor looks for; without it the repo "
+            "reads as abandoned.",
             "Add a README.md describing what it does, install, and usage.", path="."))
 
     for p in _walk(root):

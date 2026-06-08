@@ -19,8 +19,8 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from agentguard.linter import Linter  # noqa: E402
-from agentguard.models import parse_definition  # noqa: E402
+from agentguard.linter import Linter
+from agentguard.models import parse_definition
 
 SECURITY_RULES = {"AL202", "AL203", "AL204", "AL300", "AL301", "AL302", "AL303",
                   "AL305", "AL306", "AL307", "AL308", "AL310"}

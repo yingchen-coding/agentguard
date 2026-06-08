@@ -1,7 +1,6 @@
 """Tests for the AL5xx project-level distribution / supply-chain checks."""
 from pathlib import Path
 
-
 from agentguard.project import scan_project
 
 

@@ -29,7 +29,7 @@ class Finding:
     column: int = 0
     path: str = ""     # set for project-level findings that name a specific file
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
         return {
             "rule": self.rule,
             "severity": self.severity.label,
@@ -75,7 +75,7 @@ class Definition:
     """A parsed agent / command / skill definition (a markdown file with optional frontmatter)."""
     path: Path
     raw: str
-    frontmatter: dict = field(default_factory=dict)
+    frontmatter: dict[str, str] = field(default_factory=dict)
     body: str = ""
     fm_end_line: int = 0          # line where frontmatter closes (0 if none)
     kind: str = "agent"           # agent | command | skill (inferred from path)
@@ -131,13 +131,13 @@ _FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n?", re.DOTALL)
 _DISABLE_RE = re.compile(r"agentguard-disable\s+([A-Z0-9, ]+)")
 
 
-def _parse_frontmatter(text: str) -> tuple[dict, str, int]:
+def _parse_frontmatter(text: str) -> tuple[dict[str, str], str, int]:
     """Minimal YAML-ish frontmatter parser (key: value, no nesting needed for our rules)."""
     m = _FM_RE.match(text)
     if not m:
         return {}, text, 0
     fm_block = m.group(1)
-    fm: dict = {}
+    fm: dict[str, str] = {}
     cur_key = None
     for line in fm_block.split("\n"):
         if re.match(r"^\s+", line) and cur_key:  # continuation (folded description)
@@ -181,7 +181,7 @@ def parse_definition(path: Path) -> Definition:
                       tools=tools, tools_declared=declared)
 
 
-def _parse_tools(fm: dict) -> tuple[set[str] | None, bool]:
+def _parse_tools(fm: dict[str, str]) -> tuple[set[str] | None, bool]:
     """Extract the tool grant from frontmatter. Handles `tools: ["Read", "Write"]`,
     `tools: Read, Grep`, and `allowed-tools: ...`. Returns (toolset, was_declared).
 

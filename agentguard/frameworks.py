@@ -50,7 +50,7 @@ REFS: dict[str, tuple[list[str], list[str]]] = {
 }
 
 
-def refs_for(rule: str) -> dict:
+def refs_for(rule: str) -> dict[str, list[str]]:
     """Return {'owasp': [...], 'atlas': [...]} display strings for a rule, or empty lists."""
     owasp_keys, atlas_keys = REFS.get(rule, ([], []))
     return {

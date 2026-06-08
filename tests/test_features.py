@@ -4,10 +4,10 @@ from pathlib import Path
 import pytest
 
 from agentguard.cli import main
+from agentguard.fix import _MARKER, apply_fixes
 from agentguard.linter import Linter
-from agentguard.models import parse_definition, _MAX_ANALYZE_BYTES
+from agentguard.models import _MAX_ANALYZE_BYTES, parse_definition
 from agentguard.remote import looks_remote
-from agentguard.fix import apply_fixes, _MARKER
 
 
 def _write(p: Path, body: str, tools: str = "[Read, Bash]") -> Path:
