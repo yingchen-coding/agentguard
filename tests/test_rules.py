@@ -1,4 +1,6 @@
 """Rule-level tests: each rule must fire on the pattern it targets and stay quiet otherwise."""
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest
