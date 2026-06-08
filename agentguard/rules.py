@@ -149,13 +149,24 @@ _DEBUG_CTX = re.compile(
     re.IGNORECASE,
 )
 _SCOPE_BOUND = re.compile(
-    r"\b(do not|don'?t|never|only|not for|out of scope|do NOT|stay within|limited to)\b",
+    r"\b(do not|don'?t|never|only|not for|out of scope|stay within|limited to|"
+    r"focus(?:es|ed|ing)? (?:on|solely|exclusively|only)|what not to|"
+    r"your (?:job|role|remit|task|scope) is|exclusively|solely|"
+    r"prioritize[^.\n]{0,40}\bover\b|not (?:your job|responsible|in scope|markup))\b",
+    re.IGNORECASE,  # capitalized "Only"/"Never"/"Do not" at sentence starts were being missed
 )
 _OUTPUT_SECTION = re.compile(
     r"(##+\s*output|output format|respond with|reply with|return (?:a|the|exactly)|"
-    r"format:|your (?:answer|response|output) (?:must|should))",
+    r"format:|your (?:answer|response|output) (?:must|should)|"
+    r"structured?\s+as\b|in the following (?:format|structure|shape)|"
+    r"format (?:your|the) (?:output|response|reply|answer)|"
+    r"(?:output|response|reply|answer) (?:should|must) be\b|"
+    r"your\s+\w+\s+(?:output|response|answer)\s+(?:should|must|is)\b|"  # "your X output should"
+    r"(?:emit|produce|return|output)\s+(?:a |the |an |valid )?(?:json|yaml|markdown|table|csv)\b)",
     re.IGNORECASE,
 )
+# A markdown pipe table (header row + separator) is a concrete output template.
+_OUTPUT_TABLE = re.compile(r"^[ \t]*\|.+\|.*\r?\n[ \t]*\|[\s:|-]+\|", re.MULTILINE)
 _FAILURE_HANDLING = re.compile(
     r"\b(if (?:there'?s )?(?:no|not|nothing|missing|empty|absent)|"
     r"if .* (?:fail|errors?|unavailable|unreadable|cannot|can'?t|doesn'?t exist|is missing)|"
@@ -309,7 +320,7 @@ def aspirational_safety(d: Definition) -> list[Finding]:
 def no_output_format(d: Definition) -> list[Finding]:
     if d.body_line_count < 12:
         return []  # trivial agents don't need a format block
-    if _OUTPUT_SECTION.search(d.body) or _FENCE.search(d.body):
+    if _OUTPUT_SECTION.search(d.body) or _FENCE.search(d.body) or _OUTPUT_TABLE.search(d.body):
         return []
     return [Finding("AL200", Severity.MAJOR,
                     "No output-format specification — output structure will vary run to run "
