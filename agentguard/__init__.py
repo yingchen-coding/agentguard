@@ -8,7 +8,7 @@ destructive actions, prompt-injection exposure, and assert-without-verify.
 from .linter import Linter, lint_path, lint_paths
 from .models import Definition, Finding, Severity, parse_definition
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "Definition",

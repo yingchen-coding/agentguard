@@ -566,7 +566,8 @@ _CLI = (r"git|npm|pnpm|yarn|npx|node|deno|bun|python3?|pip3?|poetry|uv|ruby|carg
         r"chmod|chown|tar|jq|terraform|aws|gcloud|psql|mysql")
 _TOOL_USED = {
     "Bash": re.compile(rf"(```(?:bash|sh|shell|zsh|console)|^\s*!|\b(?:bash|shell|terminal|"
-                       rf"subprocess|run (?:a |the )?command|execute|\bcli\b)\b|"
+                       rf"subprocess|execute|\bcli\b)\b|"
+                       rf"\brun\b[^.\n]{{0,24}}?\bcommands?\b|"  # run a/the/any/whatever command(s)
                        rf"`[^`\n]*\b(?:{_CLI})\b|^\s*(?:{_CLI})\s)",
                        re.IGNORECASE | re.MULTILINE),
     "Write": re.compile(r"\b(write|save|create (?:a |the )?file|output to|persist|"
