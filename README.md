@@ -220,7 +220,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: yingchen-coding/agentguard@v0.1.0
+      - uses: yingchen-coding/agentguard@v0.1.1
         with:
           path: .claude
           fail-at: major
@@ -233,6 +233,21 @@ Or install directly from the repository in a normal workflow step:
 - run: pip install git+https://github.com/yingchen-coding/agentguard
 - run: agentguard --score .
 ```
+
+### pre-commit
+
+Catch a bad definition before it's ever committed. Add to `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/yingchen-coding/agentguard
+    rev: v0.1.1
+    hooks:
+      - id: agentguard
+```
+
+It runs only on changed `.md` files under `agents/`, `commands/`, `skills/` (or `*.agent.md` /
+`*.skill.md`) and blocks the commit on any finding at/above `--fail-at`.
 
 ### Keep it from rotting
 

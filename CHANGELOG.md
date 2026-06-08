@@ -3,7 +3,22 @@
 All notable changes are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## 0.1.1 — 2026-06-08
+
+- **Precision (marketplace audit):** hand-reviewed every critical finding from scanning the full
+  official Claude Code plugin marketplace (77 definitions / 24 plugins) and cut five false-positive
+  classes — destructive/sensitive *words in descriptive context*: AL203 on "before merge",
+  documented `rm` detection patterns, "deploy commands" (noun), "Python or shell" (a language) and
+  filenames; AL301 on a security auditor that *flags* PII rather than handling it. Each was fixed by
+  tightening the rule (descriptive-frame / noun-usage / exposure-context guards; weak triggers
+  scoped to real VCS/exec context), with seven new precision regression cases. Critical findings
+  19 raw → 14 after review; benchmark holds 100% precision / 92% recall.
+- **Precision:** AL306 no longer claims "tool unused" when the body runs commands in prose
+  ("run whatever commands it lists"), not just via a CLI token or fenced block.
+- **pre-commit:** documented the shipped `.pre-commit-hooks.yaml` — adopt with a `repo:` entry
+  pinned to a release tag.
+- **Type safety / lint:** the package now passes `mypy --strict` (0 errors; fixed a latent
+  None-guard in the sub-agent-propagation check) and a stricter ruff ruleset, both enforced in CI.
 
 - **Precision (full-corpus audit):** skill *resource* files (`examples/`, `references/`, bundled
   docs under `skills/`) are no longer linted as broken skills — only a skill's `SKILL.md` (or a

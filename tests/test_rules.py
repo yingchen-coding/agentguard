@@ -269,6 +269,14 @@ def test_al306_quiet_when_bash_used_via_cli():
     assert "AL306" not in codes(run(raw))
 
 
+def test_al306_quiet_when_body_runs_commands_in_prose():
+    # "run whatever commands it contains" is Bash usage even without a CLI token or fenced block.
+    raw = ("---\nname: f\ndescription: Use this when executing a task plan for the user\n"
+           "tools: [Read, Bash]\n---\n# B\nRead the plan and run whatever commands it lists.\n"
+           + "Body.\n" * 4)
+    assert "AL306" not in codes(run(raw))
+
+
 def test_empty_tools_field_is_declared_not_unrestricted():
     # A `tools:` field present but empty = least privilege (no tools), NOT inherit-everything.
     raw = ("---\nname: f\ndescription: Use this when doing a small read-only task\n"
