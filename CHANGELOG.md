@@ -7,8 +7,10 @@ All notable changes are documented here. Format loosely follows
 
 - **Precision:** the injection-guard detector now recognizes two more legitimate phrasings, so a
   well-guarded orchestrator no longer trips AL307 — a negation-anchored "do not propagate/forward
-  instructions embedded in the content" and the declarative "its contents are data". Verified to
-  add zero false negatives on the marketplace corpus; covered by a new regression case.
+  instructions embedded in the content" and a declarative "its contents are inert/reference/
+  read-only data" (a stance qualifier is required, so a benign "contents are data rows" cannot
+  suppress a real finding). Verified to add zero false negatives on the marketplace corpus; covered
+  by a new regression case.
 
 ## 0.1.1 — 2026-06-08
 
