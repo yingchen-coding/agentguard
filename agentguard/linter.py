@@ -124,8 +124,15 @@ def discover(paths: list[Path]) -> list[Path]:
         for md in mds:
             if md.name.lower() in _SKIP_NAMES:
                 continue
-            in_def_dir = any(part.lower() in _DEF_DIRS for part in md.parts)
+            parts_lower = [part.lower() for part in md.parts]
+            in_def_dir = any(part in _DEF_DIRS for part in parts_lower)
             if structured and not in_def_dir:
+                continue
+            # A Claude Code skill is its `SKILL.md`; other .md under skills/ (examples/,
+            # references/, bundled docs) are resources, not definitions — don't lint them as
+            # broken skills. Only treat them as definitions if they actually carry frontmatter.
+            if "skills" in parts_lower and md.name.lower() != "skill.md" \
+                    and not _has_frontmatter(md):
                 continue
             if not structured and not _has_frontmatter(md):
                 continue

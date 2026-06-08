@@ -5,6 +5,12 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- **Precision (full-corpus audit):** skill *resource* files (`examples/`, `references/`, bundled
+  docs under `skills/`) are no longer linted as broken skills — only a skill's `SKILL.md` (or a
+  file with frontmatter) is a definition. On a 178-file scan of the installed plugin cache this
+  cut AL001 false positives from 53% of files to 0%.
+- **Precision:** AL300 no longer fires on a degenerate frontmatter-only stub with an empty body
+  (recall verified unchanged on the real corpus).
 - **`--score`** — print a one-line A–F security grade after the detailed human-readable scan.
   Findings remain the source of truth; the grade makes before/after hardening easy to compare.
 - **GitHub Action self-install** — the composite action now installs the checked-out action source
