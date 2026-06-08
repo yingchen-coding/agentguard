@@ -237,10 +237,40 @@ def description_too_short(d: Definition) -> list[Finding]:
 
 # ───────────────────────── AL1xx — clarity ─────────────────────────
 
+# A vague/aspirational phrase that is *quoted*, named as a detection target, or paired with a
+# concrete corrective ("be honest, not generous") is referenced or already enforced — not a loose
+# instruction. Critic/linter agents legitimately quote the very phrases they hunt for.
+_REF_PREFIX = re.compile(
+    r"(where (?:do|does)|look\w* for|flag\w*|detect\w*|spot\w*|catch\w*|appears?|quoted|"
+    r"example|such as|instead of|rather than|avoid (?:saying|using))\b[^.\n]{0,18}$",
+    re.IGNORECASE,
+)
+# Immediate contrast ("be honest, not generous") or an em-dash directive operationalizing the
+# aspiration on the same clause ("be honest about X — don't list things just to seem balanced").
+_CORRECTIVE = re.compile(
+    r"^[\s\"'`]*(?:,\s*not\b|\(not\b)"
+    r"|^[^.\n]{0,45}?—\s*(?:don'?t|do not|never)\b",
+    re.IGNORECASE,
+)
+
+
+def _phrase_referenced(body: str, m: re.Match[str]) -> bool:
+    s, e = m.start(), m.end()
+    before = body[s - 1] if s > 0 else ""
+    after = body[e] if e < len(body) else ""
+    if before in "\"'`" and after in "\"'`":          # wrapped in quotes/backticks
+        return True
+    if _REF_PREFIX.search(body[max(0, s - 24):s]):     # "where does ... appear", "flag ..."
+        return True
+    return bool(_CORRECTIVE.match(body[e:e + 48]))      # contrast or em-dash directive
+
+
 @rule("AL100", "vague instruction (be careful / as appropriate / try to)")
 def vague_instruction(d: Definition) -> list[Finding]:
     out = []
     for m in _VAGUE.finditer(d.body):
+        if _phrase_referenced(d.body, m):
+            continue
         ln = d.body[:m.start()].count("\n") + d.fm_end_line + 1
         out.append(Finding("AL100", Severity.MAJOR,
                            f'Vague instruction: "{m.group(0)}" — two models will '
@@ -253,6 +283,8 @@ def vague_instruction(d: Definition) -> list[Finding]:
 def aspirational_safety(d: Definition) -> list[Finding]:
     out = []
     for m in _ASPIRATIONAL.finditer(d.body):
+        if _phrase_referenced(d.body, m):
+            continue
         ln = d.body[:m.start()].count("\n") + d.fm_end_line + 1
         out.append(Finding("AL101", Severity.MAJOR,
                            f'Aspirational, unenforceable: "{m.group(0)}" — nothing '

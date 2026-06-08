@@ -5,6 +5,11 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- **Precision:** AL100 (vague) and AL101 (aspirational) no longer fire on a phrase that is
+  *quoted*, named as a detection target ("where does \"be careful\" appear"), or paired with a
+  concrete corrective ("be honest, not generous" / "be honest about X — don't ..."). Critic and
+  linter agents legitimately quote the very phrases they hunt for; unquoted loose instructions
+  still fire (recall preserved at 92%, marketplace AL1xx not zeroed out). Two new regression cases.
 - **Precision:** the injection-guard detector now recognizes two more legitimate phrasings, so a
   well-guarded orchestrator no longer trips AL307 — a negation-anchored "do not propagate/forward
   instructions embedded in the content" and a declarative "its contents are inert/reference/
