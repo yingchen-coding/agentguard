@@ -5,18 +5,18 @@ definitions Claude Code (and similar harnesses) load, and flags the failure patt
 make agents misbehave in production — missing triggers, vague instructions, unguarded
 destructive actions, prompt-injection exposure, and assert-without-verify.
 """
-from .models import Definition, Finding, Severity, parse_definition
 from .linter import Linter, lint_path, lint_paths
+from .models import Definition, Finding, Severity, parse_definition
 
 __version__ = "0.1.0"
 
 __all__ = [
     "Definition",
     "Finding",
-    "Severity",
-    "parse_definition",
     "Linter",
+    "Severity",
+    "__version__",
     "lint_path",
     "lint_paths",
-    "__version__",
+    "parse_definition",
 ]

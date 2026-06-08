@@ -2,7 +2,6 @@
 import json
 from pathlib import Path
 
-
 from agentguard.cli import main
 from agentguard.config import load_config
 

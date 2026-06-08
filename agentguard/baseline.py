@@ -9,9 +9,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 from .linter import LintReport
+from .models import Finding
 
 _NUM = re.compile(r"\d+")
 
@@ -23,7 +25,7 @@ def _fingerprint(path: str, rule: str, message: str) -> str:
     return hashlib.sha256(f"{path}\0{rule}\0{norm}".encode()).hexdigest()[:16]
 
 
-def _iter(report: LintReport, root: Path | None):
+def _iter(report: LintReport, root: Path | None) -> Iterator[tuple[str, Finding]]:
     for r in report.results:
         try:
             path = str(r.path.relative_to(root)) if root else str(r.path)

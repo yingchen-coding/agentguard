@@ -70,8 +70,8 @@ _PROJECT_RULES = [
 
 
 def _list_rules() -> int:
-    from .rules import TITLES
     from .frameworks import short_refs
+    from .rules import TITLES
 
     def line(code: str, title: str) -> str:
         ref = short_refs(code)
@@ -125,20 +125,26 @@ def main(argv: list[str] | None = None) -> int:
             cleanup(remote_cleanup)
 
 
-def _run(args, paths: list[Path]) -> int:
+def _run(args: argparse.Namespace, paths: list[Path]) -> int:
     # Common root for config discovery and tidy relative paths.
     root = paths[0].resolve() if (len(paths) == 1 and paths[0].is_dir()) else None
 
     # Config provides defaults; explicit CLI flags win.
-    cfg = {}
+    cfg: dict[str, object] = {}
     if not args.no_config:
         from .config import load_config
         cfg = load_config(root or Path("."))
-    select = _parse_codes(args.select) if args.select else cfg.get("select")
-    ignore = _parse_codes(args.ignore) if args.ignore else cfg.get("ignore", set())
-    fail_at = args.fail_at if args.fail_at != "major" else cfg.get("fail_at", "major")
+
+    def _codes(v: object) -> set[str] | None:
+        return v if isinstance(v, set) else None
+
+    select = _parse_codes(args.select) if args.select else _codes(cfg.get("select"))
+    ignore = _parse_codes(args.ignore) if args.ignore else (_codes(cfg.get("ignore")) or set())
+    cfg_fail = cfg.get("fail_at")
+    fail_at = args.fail_at if args.fail_at != "major" else \
+        (cfg_fail if isinstance(cfg_fail, str) else "major")
     publish_check = args.publish_check if args.publish_check is not None \
-        else cfg.get("publish_check", False)
+        else bool(cfg.get("publish_check", False))
     if fail_at not in _SEV_NAMES:
         print(f"agentguard: invalid fail-at: {fail_at}", file=sys.stderr)
         return 2
@@ -182,7 +188,7 @@ def _run(args, paths: list[Path]) -> int:
               file=sys.stderr)
         return 0
     if args.baseline:
-        from .baseline import load_baseline, apply_baseline
+        from .baseline import apply_baseline, load_baseline
         suppressed = apply_baseline(report, load_baseline(Path(args.baseline)), root)
         if suppressed:
             print(f"agentguard: {suppressed} baselined finding(s) suppressed", file=sys.stderr)
