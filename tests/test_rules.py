@@ -168,6 +168,21 @@ def test_al204_quiet_when_verifies():
     assert "AL204" not in codes(run(raw))
 
 
+def test_al204_skips_noun_heading_and_debug_diagnose():
+    # Noun form ("assertions" as data to extract), a section heading, and a debug "diagnose" are
+    # not high-stakes assertive actions.
+    raw = ("---\nname: f\ndescription: Use this when extracting claims from an article\n---\n"
+           "# B\nExtract the key assertions and claims into nodes.\n"
+           "### Recommended structure\nRead stderr to diagnose the error before retrying.\n" * 2)
+    assert "AL204" not in codes(run(raw))
+
+
+def test_al204_still_fires_on_clinical_diagnose():
+    raw = ("---\nname: f\ndescription: Use this when assessing a patient for the user\n---\n"
+           "# B\nDiagnose the underlying condition and recommend a treatment plan.\n" * 3)
+    assert "AL204" in codes(run(raw))
+
+
 def test_al200_no_output_format():
     raw = ("---\nname: f\ndescription: Use this when the user wants a long structured job done\n---\n"
            "# B\n" + "Do the analysis step.\n" * 15)

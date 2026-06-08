@@ -139,6 +139,15 @@ _VERIFY = re.compile(
     r"already (?:documented|done|present|recorded))\b",
     re.IGNORECASE,
 )
+# An assertive stem in a *noun* form ("assertions", "recommendation(s)", "classification") is data
+# the agent handles, not a high-stakes claim it makes. And "diagnose" near debug words ("read
+# stderr to diagnose", "diagnose the error") is troubleshooting, not a clinical/high-stakes claim.
+_NOMINALIZED = re.compile(r"(?:ion|ions|ation|ations)$", re.IGNORECASE)
+_DEBUG_CTX = re.compile(
+    r"\b(error|stderr|stdout|issue|bug|problem|failure|crash|stack ?trace|exit code|"
+    r"non-?zero|traceback|output|logs?)\b",
+    re.IGNORECASE,
+)
 _SCOPE_BOUND = re.compile(
     r"\b(do not|don'?t|never|only|not for|out of scope|do NOT|stay within|limited to)\b",
 )
@@ -366,10 +375,23 @@ def unscoped_destructive_capability(d: Definition) -> list[Finding]:
 def assert_without_verify(d: Definition) -> list[Finding]:
     """The 'grep-before-recommend' safety rail, generalized: an agent that recommends/diagnoses/
     flags/scores but never verifies against existing data before asserting."""
-    m = _ASSERTIVE.search(d.body)
-    if not m:
-        return []
     if _VERIFY.search(d.body):
+        return []
+    # Fire on a real assertive *action*, not a noun ("extract the assertions"), a section heading
+    # ("### Recommended Improvements"), or a casual debug "diagnose the error/stderr".
+    m = None
+    for mm in _ASSERTIVE.finditer(d.body):
+        if _NOMINALIZED.search(mm.group(0)):
+            continue
+        line_start = d.body.rfind("\n", 0, mm.start()) + 1
+        if d.body[line_start:mm.start()].lstrip().startswith("#"):
+            continue
+        if mm.group(0).lower().startswith("diagnos") and \
+                _DEBUG_CTX.search(d.body[max(0, mm.start() - 30):mm.end() + 30]):
+            continue
+        m = mm
+        break
+    if m is None:
         return []
     ln = d.body[:m.start()].count("\n") + d.fm_end_line + 1
     return [Finding("AL204", Severity.MAJOR,
