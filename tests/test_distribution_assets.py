@@ -1,7 +1,6 @@
 """Regression checks for the install and publishing paths users copy from the README."""
 from pathlib import Path
 
-
 ROOT = Path(__file__).parent.parent
 
 

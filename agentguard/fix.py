@@ -51,8 +51,4 @@ def fix_file(result: FileResult) -> bool:
 
 def apply_fixes(results: list[FileResult]) -> list[Path]:
     """Apply the guard fix across a lint run. Returns the list of files changed."""
-    changed = []
-    for r in results:
-        if fix_file(r):
-            changed.append(Path(r.path))
-    return changed
+    return [Path(r.path) for r in results if fix_file(r)]

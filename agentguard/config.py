@@ -17,7 +17,7 @@ from pathlib import Path
 _KEYS = {"select", "ignore", "fail-at", "fail_at", "publish-check", "publish_check"}
 
 
-def load_config(root: Path) -> dict:
+def load_config(root: Path) -> dict[str, object]:
     """Return the merged agentguard config dict for a scan root, or {} if none."""
     for name in (".agentguard.toml", "agentguard.toml"):
         f = root / name
@@ -29,7 +29,7 @@ def load_config(root: Path) -> dict:
     return {}
 
 
-def _parse(text: str, table: str) -> dict:
+def _parse(text: str, table: str) -> dict[str, object]:
     try:
         import tomllib  # Python 3.11+
         data = tomllib.loads(text)
@@ -45,9 +45,9 @@ def _parse(text: str, table: str) -> dict:
         return _normalize(_mini_table(text, table))
 
 
-def _mini_table(text: str, table: str) -> dict:
+def _mini_table(text: str, table: str) -> dict[str, object]:
     """Minimal fallback: grab simple `key = value` lines inside [table]."""
-    out: dict = {}
+    out: dict[str, object] = {}
     in_table = False
     header = "[" + table + "]"
     for raw in text.splitlines():
@@ -65,7 +65,7 @@ def _mini_table(text: str, table: str) -> dict:
     return out
 
 
-def _coerce(val: str):
+def _coerce(val: str) -> object:
     val = val.split("#", 1)[0].strip()
     if val.startswith("[") and val.endswith("]"):
         return [v.strip().strip("'\"") for v in re.split(r",", val[1:-1]) if v.strip()]
@@ -74,13 +74,21 @@ def _coerce(val: str):
     return val.strip("'\"")
 
 
-def _normalize(d: dict) -> dict:
-    out: dict = {}
+def _as_code_set(value: object) -> set[str]:
+    """Coerce a config value (list/tuple/str) into a normalized set of rule codes."""
+    if isinstance(value, (list, tuple, set)):
+        return {str(x).upper() for x in value if str(x).strip()}
+    if isinstance(value, str) and value.strip():
+        return {value.strip().upper()}
+    return set()
+
+
+def _normalize(d: dict[str, object]) -> dict[str, object]:
+    out: dict[str, object] = {}
     if "select" in d:
-        out["select"] = {str(x).upper() for x in (d["select"] or [])} or None
-    for k in ("ignore",):
-        if k in d:
-            out["ignore"] = {str(x).upper() for x in (d[k] or [])}
+        out["select"] = _as_code_set(d["select"]) or None
+    if "ignore" in d:
+        out["ignore"] = _as_code_set(d["ignore"])
     fa = d.get("fail-at", d.get("fail_at"))
     if fa:
         out["fail_at"] = str(fa).lower()

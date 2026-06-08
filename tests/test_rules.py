@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from agentguard.models import Definition, Severity, parse_definition
 from agentguard.linter import Linter, discover
+from agentguard.models import Definition, Severity, parse_definition
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

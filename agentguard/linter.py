@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from .models import Definition, Finding, Severity, parse_definition
 from .rules import all_rules
@@ -71,9 +73,7 @@ class Linter:
             return False
         if self.select is not None and code not in self.select:
             return False
-        if code in self.ignore:
-            return False
-        return True
+        return code not in self.ignore
 
     def lint_definition(self, definition: Definition) -> list[Finding]:
         findings: list[Finding] = []
@@ -140,7 +140,7 @@ def discover(paths: list[Path]) -> list[Path]:
     return sorted(found)
 
 
-def _walk_md(root: Path):
+def _walk_md(root: Path) -> Iterator[Path]:
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in _SKIP_WALK_DIRS]
         for fn in filenames:
@@ -158,9 +158,9 @@ def _has_frontmatter(path: Path) -> bool:
 
 # ---- functional conveniences ----
 
-def lint_path(path: str | Path, **kw) -> LintReport:
+def lint_path(path: str | Path, **kw: Any) -> LintReport:
     return Linter(**kw).lint([Path(path)])
 
 
-def lint_paths(paths: list[str | Path], **kw) -> LintReport:
+def lint_paths(paths: list[str | Path], **kw: Any) -> LintReport:
     return Linter(**kw).lint([Path(p) for p in paths])
