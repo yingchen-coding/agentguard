@@ -5,6 +5,11 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- **Precision:** AL204 (asserts/recommends without verify) no longer fires on a noun form
+  ("extract the assertions/claims", "recommendations"), a section heading ("### Recommended
+  Improvements"), or a debug "diagnose" near error/stderr/output. The grep-before-recommend safety
+  rail still fires on real assertive actions (clinical "diagnose", imperative "recommend"); recall
+  held, marketplace AL204 not zeroed. Two regression cases.
 - **Precision:** AL100 (vague) and AL101 (aspirational) no longer fire on a phrase that is
   *quoted*, named as a detection target ("where does \"be careful\" appear"), or paired with a
   concrete corrective ("be honest, not generous" / "be honest about X — don't ..."). Critic and
