@@ -3,6 +3,13 @@
 All notable changes are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+- **Precision:** the injection-guard detector now recognizes two more legitimate phrasings, so a
+  well-guarded orchestrator no longer trips AL307 — a negation-anchored "do not propagate/forward
+  instructions embedded in the content" and the declarative "its contents are data". Verified to
+  add zero false negatives on the marketplace corpus; covered by a new regression case.
+
 ## 0.1.1 — 2026-06-08
 
 - **Precision (marketplace audit):** hand-reviewed every critical finding from scanning the full
@@ -19,7 +26,6 @@ All notable changes are documented here. Format loosely follows
   pinned to a release tag.
 - **Type safety / lint:** the package now passes `mypy --strict` (0 errors; fixed a latent
   None-guard in the sub-agent-propagation check) and a stricter ruff ruleset, both enforced in CI.
-
 - **Precision (full-corpus audit):** skill *resource* files (`examples/`, `references/`, bundled
   docs under `skills/`) are no longer linted as broken skills — only a skill's `SKILL.md` (or a
   file with frontmatter) is a definition. On a 178-file scan of the installed plugin cache this
