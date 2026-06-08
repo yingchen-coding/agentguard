@@ -90,6 +90,25 @@ def test_al101_aspirational_safety():
     assert "AL101" in codes(run(raw))
 
 
+def test_al100_101_skip_referenced_phrases():
+    # A critic agent that QUOTES the vague/aspirational phrases it hunts for, or pairs an
+    # aspiration with a concrete corrective, is not itself vaguely instructed.
+    raw = ('---\nname: f\ndescription: Use this when reviewing a definition for vague language\n'
+           '---\n# B\n'
+           'Where does "be careful" or "as appropriate" appear when a concrete action is needed? '
+           'Be honest, not generous, in the writeup.\n' * 2)
+    found = codes(run(raw))
+    assert "AL100" not in found and "AL101" not in found
+
+
+def test_al100_101_still_fire_unquoted():
+    # The guard must not kill recall: a genuinely loose, unquoted instruction still fires.
+    raw = ("---\nname: f\ndescription: Use this when doing the documented job for the user\n---\n"
+           "# B\nBe careful and be accurate when you edit the files.\n" * 2)
+    found = codes(run(raw))
+    assert "AL100" in found and "AL101" in found
+
+
 # ---- robustness / safety rules ----
 
 def test_al202_injection_exposure_fires():
