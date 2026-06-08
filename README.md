@@ -220,7 +220,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: yingchen-coding/agentguard@v0.1.1
+      - uses: yingchen-coding/agentguard@v0.1.2
         with:
           path: .claude
           fail-at: major
@@ -241,7 +241,7 @@ Catch a bad definition before it's ever committed. Add to `.pre-commit-config.ya
 ```yaml
 repos:
   - repo: https://github.com/yingchen-coding/agentguard
-    rev: v0.1.1
+    rev: v0.1.2
     hooks:
       - id: agentguard
 ```
