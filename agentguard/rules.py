@@ -76,16 +76,43 @@ _INJECTION_GUARD = re.compile(
     r"(?:any\s+|the\s+)?(?:text|content|instruction|command|anything|what\w*)\b)",
     re.IGNORECASE | re.DOTALL,
 )
-# Destructive / outward-facing capabilities.
+# Destructive / outward-facing capabilities. The weakest verbs (merge/shell/push) are scoped to a
+# real action context — bare "merge" matches "merge the result sets", "shell" matches "Python or
+# shell", "push" matches "push it onto the stack" — all benign. They only count with VCS / exec
+# context attached.
 _DESTRUCTIVE = re.compile(
     r"\b(delete|remove|rm\s|overwrite|drop (?:table|database)|truncate|"
-    r"send (?:an? )?(?:email|message|tweet|sms)|post(?: to)?|publish|deploy|"
-    r"push (?:to)?|merge|execute|run (?:a |the )?command|shell|chmod|kill)\b",
+    r"send (?:an? )?(?:email|message|tweet|sms)|post(?: to)?|publish|deploy\b(?!\.\w)|"
+    r"push (?:to|origin|upstream|--|changes|commits?|code|updates?|branch|main|master|"
+    r"the (?:branch|code|commit|change))|"
+    r"merge (?:to|into|branch|pr\b|pull request|main|master|--|the (?:pr|branch|change|code))|"
+    r"execute|run (?:a |the )?command|"
+    r"(?:run|spawn|drop in?to|exec\w*|invoke|launch|open|start) (?:a |an |the )?(?:interactive )?"
+    r"shell|shell command|chmod|kill)\b",
     re.IGNORECASE,
 )
 _GUARD = re.compile(
     r"\b(do not|don'?t|never|must not|only (?:if|when|after)|confirm|ask (?:first|before)|"
     r"require(?:s)? (?:approval|confirmation)|with (?:explicit )?permission|unless)\b",
+    re.IGNORECASE,
+)
+# A destructive *word* in a descriptive (non-imperative) frame is not an action the agent takes:
+# "must fix before merge" (a noun), "Pattern: `rm -rf`" (a string it matches), "warn about deploy",
+# "detect dangerous rm". These are talked-about, not done. Matched against the prefix just before
+# the verb. This is what separates "the agent deletes X" from "the agent flags deletions of X".
+_DESC_FRAME = re.compile(
+    r"(before|after|about|against|detect\w*|warn\w*|flags?|pattern|dangerous|risky|stale|"
+    r"prevent\w*|block\w*|avoid\w*|such as|like|e\.g\.|i\.e\.|named|called|matching|the word|"
+    r"reviewing|review|note that|message|"
+    r"(?:command|script|operation|action)s?\s+(?:could|can|would|may|might|will))"
+    r"\s*[\s:`\-\"'(*_~]*$",  # trailing markdown/punctuation
+    re.IGNORECASE,
+)
+# A destructive verb used as a *noun adjunct* ("deploy commands", "merge button", "push access")
+# names a category, it isn't an action the agent performs.
+_NOUN_USE = re.compile(
+    r"^\s*(commands?|scripts?|steps?|pipelines?|jobs?|keys?|access|permissions?|button|"
+    r"hooks?|stages?|workflows?|operations?|actions?|rights?)\b",
     re.IGNORECASE,
 )
 # High-stakes assertion verbs (where verify-before-assert matters most).
@@ -265,10 +292,23 @@ def prompt_injection_exposure(d: Definition) -> list[Finding]:
 
 @rule("AL203", "unguarded destructive / outward-facing action")
 def unscoped_destructive_capability(d: Definition) -> list[Finding]:
-    m = _DESTRUCTIVE.search(d.body)
-    if not m:
-        return []
     if _GUARD.search(d.body):
+        return []
+    # Find the first destructive verb that is actually *imperative* — skip ones sitting in a
+    # descriptive frame ("before merge", "Pattern: `rm`", "warn about deploy"), a slashed list
+    # ("build/test/deploy"), or noun usage ("deploy commands"). They name the action without
+    # performing it. Without this, the rule cries wolf on linters and PR reviewers.
+    m = None
+    for mm in _DESTRUCTIVE.finditer(d.body):
+        pre = d.body[max(0, mm.start() - 24):mm.start()]
+        if _DESC_FRAME.search(pre) or pre.endswith("/"):
+            continue
+        suf = d.body[mm.end():mm.end() + 16]
+        if _NOUN_USE.match(suf) or re.match(r"\.\w{1,4}\b", suf):  # noun usage or a filename
+            continue
+        m = mm
+        break
+    if m is None:
         return []
     ln = d.body[:m.start()].count("\n") + d.fm_end_line + 1
     return [Finding("AL203", Severity.CRITICAL,
@@ -422,11 +462,20 @@ def injection_action_chain(d: Definition) -> list[Finding]:
 
 
 # A sensitive term sitting in a detection/negation frame ("no hardcoded credentials",
-# "scan for passwords") means the agent *audits* for it, not that it *handles* it.
+# "scan for passwords", "exposed credentials") means the agent *audits* for it, not that it
+# *handles* it.
 _META_FRAME = re.compile(
     r"(no|never|without|avoid|forbid|don'?t|do not|ensure no|free of|hardcoded|"
     r"check (?:for)?|scan (?:for)?|detect|look (?:for)?|search (?:for)?|find|flag|"
-    r"reject|warn (?:about|on)|verif\w+ no|absence of)\s*$",
+    r"reject|warn (?:about|on)|verif\w+ no|absence of|"
+    r"expos\w+|leak\w*|cleartext|plaintext|weak (?:crypto|encryption))\s*$",
+    re.IGNORECASE,
+)
+# A sensitive term followed by an *exposure location* ("PII in logs", "secrets in source",
+# "credentials in transit") is something a security auditor looks for, not data it processes.
+_EXPOSURE_SUFFIX = re.compile(
+    r"^\s*(?:in (?:logs?|source|code|transit|files?|datasets?|records?|memory|the\s+\w+\s+log)|"
+    r"expos\w+|leak\w*|stored (?:in|insecurely)|hardcoded)\b",
     re.IGNORECASE,
 )
 
@@ -435,7 +484,8 @@ def _handles_sensitive(d: Definition) -> re.Match[str] | None:
     """Return the first sensitive match that is actually *handled* (not merely audited for)."""
     for m in _SENSITIVE.finditer(d.body):
         prefix = d.body[max(0, m.start() - 22):m.start()]
-        if _META_FRAME.search(prefix):
+        suffix = d.body[m.end():m.end() + 20]
+        if _META_FRAME.search(prefix) or _EXPOSURE_SUFFIX.search(suffix):
             continue
         return m
     return None
