@@ -29,8 +29,9 @@ plugins** (Anthropic's `pr-review-toolkit`, `plugin-dev`, `code-modernization`, 
 | Carry at least one **security-class finding** (AL3xx) | **40 / 77 (52%)** |
 
 I then read **every critical finding by hand**, found five false-positive classes in my own rules,
-and fixed them — so the headline numbers are *verified*, not raw. Every number reproducible, with
-the verification write-up: **[docs/findings.md](docs/findings.md)**.
+and fixed them (criticals: 19 raw → 14 after review) — so the headline numbers are *reviewed*, not
+raw. Every number reproducible, with the verification write-up:
+**[docs/findings.md](docs/findings.md)**.
 
 ### What that looks like
 

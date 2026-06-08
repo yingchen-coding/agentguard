@@ -87,7 +87,7 @@ _DESTRUCTIVE = re.compile(
     r"the (?:branch|code|commit|change))|"
     r"merge (?:to|into|branch|pr\b|pull request|main|master|--|the (?:pr|branch|change|code))|"
     r"execute|run (?:a |the )?command|"
-    r"(?:run|spawn|drop in?to|exec\w*|invoke|launch|open|start) (?:a |an |the )?(?:interactive )?"
+    r"(?:run|spawn|drop into|exec\w*|invoke|launch|open|start) (?:a |an |the )?(?:interactive )?"
     r"shell|shell command|chmod|kill)\b",
     re.IGNORECASE,
 )
@@ -115,6 +115,9 @@ _NOUN_USE = re.compile(
     r"hooks?|stages?|workflows?|operations?|actions?|rights?)\b",
     re.IGNORECASE,
 )
+# A destructive verb immediately followed by a file extension ("deploy.md", "delete.py") is a
+# filename, not an action.
+_FILENAME_SUFFIX = re.compile(r"\.\w{1,4}\b")
 # High-stakes assertion verbs (where verify-before-assert matters most).
 _ASSERTIVE = re.compile(
     r"\b(recommend|diagnos|prescrib|advis|conclud|determine (?:that|whether)|assert|"
@@ -304,7 +307,7 @@ def unscoped_destructive_capability(d: Definition) -> list[Finding]:
         if _DESC_FRAME.search(pre) or pre.endswith("/"):
             continue
         suf = d.body[mm.end():mm.end() + 16]
-        if _NOUN_USE.match(suf) or re.match(r"\.\w{1,4}\b", suf):  # noun usage or a filename
+        if _NOUN_USE.match(suf) or _FILENAME_SUFFIX.match(suf):  # noun usage or a filename
             continue
         m = mm
         break

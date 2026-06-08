@@ -41,8 +41,10 @@ in descriptive context rather than an action the agent takes:
 Each was fixed by **tightening the rule** (a descriptive-frame / noun-usage / exposure-context
 guard), not by suppressing the code — and each is now a permanent regression case in
 [`eval/benchmark.py`](../eval/benchmark.py), which holds **100% precision (0 false alarms)** across
-the suite. Critical findings dropped from 19 raw → **14 verified**. The numbers above are the
-post-verification numbers.
+the suite. Critical findings dropped from 19 raw → **14 after hand review**. The numbers above are
+the post-verification numbers. (Two of the surviving 14 are deliberately conservative calls — e.g.
+a command that *documents* how to delete a config rule — kept rather than tune the heuristics to a
+single corpus. Honest review means showing those too.)
 
 ## The threat, concretely
 
