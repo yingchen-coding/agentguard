@@ -383,6 +383,11 @@ def injection_action_chain(d: Definition) -> list[Finding]:
         return []
     if _INJECTION_GUARD.search(d.body):
         return []
+    # For unrestricted agents the reader+sink are *inferred* from inheriting the full toolset. Don't
+    # claim a chain on a degenerate stub with essentially no body (it does nothing) — but keep firing
+    # on any real agent, even if its prose says "PR"/"types"/"code" rather than the literal "file".
+    if not d.tools_declared and len(d.body.strip()) < 40:
+        return []
     # CRITICAL only when the agent *explicitly* holds both an untrusted (network/MCP) reader and
     # an exec sink — the chain is wired, not merely possible. Unrestricted agents (no tools field)
     # and local-read+exec are real exposures but rated MAJOR; AL302 separately flags the missing

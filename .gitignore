@@ -9,3 +9,6 @@ dist/
 venv/
 *.sarif
 .DS_Store
+.understand-anything/intermediate/
+.understand-anything/tmp/
+.understand-anything/diff-overlay.json

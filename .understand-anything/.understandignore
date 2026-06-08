@@ -1,0 +1,10 @@
+# Exclude generated and local-only artifacts from architecture analysis.
+.git/
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.lock
