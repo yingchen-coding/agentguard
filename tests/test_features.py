@@ -170,6 +170,21 @@ def test_render_grade_names_project_findings():
     assert "0 definitions, 1 project finding" in rendered
 
 
+# ---- discover: skill resources are not definitions ----
+
+def test_skill_resources_not_linted(tmp_path):
+    from agentguard.linter import discover
+    skill = tmp_path / "skills" / "my-skill"
+    (skill / "examples").mkdir(parents=True)
+    (skill / "references").mkdir(parents=True)
+    (skill / "SKILL.md").write_text("---\nname: my-skill\ndescription: Use this when X\n---\n# S\nDo X.\n")
+    (skill / "examples" / "demo.md").write_text("# Demo\nNo frontmatter — a bundled resource.\n")
+    (skill / "references" / "ref.md").write_text("# Reference\nAlso just a doc.\n")
+    found = {p.name for p in discover([tmp_path])}
+    assert "SKILL.md" in found
+    assert "demo.md" not in found and "ref.md" not in found  # resources skipped, no AL001 spam
+
+
 # ---- friendly empty ----
 
 def test_empty_dir_message_and_zero_exit(tmp_path, capsys):
