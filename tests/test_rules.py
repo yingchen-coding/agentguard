@@ -189,10 +189,39 @@ def test_al200_no_output_format():
     assert "AL200" in codes(run(raw))
 
 
+@pytest.mark.parametrize("structure", [
+    "Your analysis output should be structured as: id, severity, fix.",  # adjective between
+    "Report each finding in the following format: a one-line summary then details.",
+    "| Field | Content |\n|---|---|\n| ID | SEC-NNN |\n| Severity | high |",  # markdown table
+])
+def test_al200_quiet_when_output_specified_in_table_or_phrasing(structure):
+    raw = ("---\nname: f\ndescription: Use this when the user wants a long structured job done\n---\n"
+           "# B\n" + "Do the analysis step.\n" * 14 + structure + "\n")
+    assert "AL200" not in codes(run(raw))
+
+
 def test_al201_no_failure_handling():
     raw = ("---\nname: f\ndescription: Use this when the user wants a long structured job done\n---\n"
            "# B\n" + "Process each record in turn and produce the result.\n" * 15)
     assert "AL201" in codes(run(raw))
+
+
+@pytest.mark.parametrize("scope", [
+    "Only report issues with confidence over 80.",           # capitalized "Only" was missed
+    "## What NOT to Focus On\nGeneral style nits.",
+    "Your job is the data and narrative, not the markup.",
+    "Focus on issues that truly matter.",
+])
+def test_al205_quiet_when_scope_stated(scope):
+    raw = ("---\nname: f\ndescription: Use this when reviewing a change for the user\n---\n# B\n"
+           + "Review the change carefully.\n" * 14 + scope + "\n")
+    assert "AL205" not in codes(run(raw))
+
+
+def test_al205_fires_when_truly_unbounded():
+    raw = ("---\nname: f\ndescription: Use this when the user wants a long structured job done\n---\n"
+           "# B\n" + "Help with whatever the user brings up and just keep going.\n" * 15)
+    assert "AL205" in codes(run(raw))
 
 
 # ---- inline disable ----

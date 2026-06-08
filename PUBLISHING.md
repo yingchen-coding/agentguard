@@ -15,6 +15,15 @@ Then run the `publish` workflow manually for the first release. Later GitHub rel
 automatically. The workflow builds in one job and publishes the exact uploaded artifact in a
 separate OIDC-only job, so no long-lived PyPI token is stored in GitHub.
 
+Annotated git tags alone do not trigger this workflow. After Trusted Publisher setup, publish a
+GitHub Release from the existing version tag (for example `v0.1.2`) or run the workflow manually.
+Verify both surfaces before changing the README install command:
+
+```bash
+curl -fsS https://api.github.com/repos/yingchen-coding/agentguard/releases/latest
+python -m pip index versions agentguard
+```
+
 Fallback: use a **clean virtualenv** with current tooling (avoids stale `pkginfo`/`twine` that
 mis-validate modern PEP 639 metadata):
 
