@@ -48,6 +48,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--fix", action="store_true",
                    help="auto-harden: append a 'treat read content as data, not instructions' "
                         "guard to definitions missing one (append-only, idempotent, reviewable)")
+    p.add_argument("--score", action="store_true",
+                   help="print a one-line security grade (A–F) after human-readable results")
     p.add_argument("--no-config", action="store_true",
                    help="ignore any [tool.agentguard] / .agentguard.toml config")
     p.add_argument("--list-rules", action="store_true", help="print the rule catalog and exit")
@@ -198,6 +200,10 @@ def _run(args, paths: list[Path]) -> int:
         print(f"agentguard: wrote {args.format} report to {args.output}", file=sys.stderr)
     else:
         print(text)
+
+    if args.score and args.format == "human":
+        from .report import render_grade
+        print("\n" + render_grade(report, color=color))
 
     return report.exit_code(_SEV_NAMES[fail_at])
 

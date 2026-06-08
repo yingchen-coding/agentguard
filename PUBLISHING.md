@@ -4,8 +4,19 @@ Quick notes for cutting a release to PyPI.
 
 ## Build + upload
 
-Use a **clean virtualenv** with current tooling (avoids stale `pkginfo`/`twine` that mis-validate
-modern PEP 639 metadata):
+Preferred: configure a PyPI Trusted Publisher for:
+
+- Owner: `yingchen-coding`
+- Repository: `agentguard`
+- Workflow: `publish.yml`
+- Environment: `pypi`
+
+Then run the `publish` workflow manually for the first release. Later GitHub releases publish
+automatically. The workflow builds in one job and publishes the exact uploaded artifact in a
+separate OIDC-only job, so no long-lived PyPI token is stored in GitHub.
+
+Fallback: use a **clean virtualenv** with current tooling (avoids stale `pkginfo`/`twine` that
+mis-validate modern PEP 639 metadata):
 
 ```bash
 python3 -m venv /tmp/pub && source /tmp/pub/bin/activate
@@ -20,7 +31,15 @@ accepts this; only very old local `twine`/`pkginfo` will complain on `twine chec
 local-tooling issue, not a package defect (verify with a clean install: `pip install dist/*.whl &&
 agentguard --version`).
 
-## Before the first release
+## Before the first PyPI release
+
+As of 2026-06-07, `agentguard` is **not published on PyPI**. Keep README install commands pointed
+at GitHub until `https://pypi.org/project/agentguard/` resolves and a clean environment verifies:
+
+```bash
+python -m pip install agentguard
+agentguard --version
+```
 
 Replace the `YOUR_USERNAME` placeholder with the real GitHub org/user in: <!-- agentguard-allow AL502 -->
 

@@ -3,14 +3,14 @@
 > **Your AI agent can be hijacked by a comment in a file it reads.** agentguard catches it before it ships.
 
 [![CI](https://github.com/yingchen-coding/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/yingchen-coding/agentguard/actions)
-[![PyPI](https://img.shields.io/pypi/v/agentguard.svg)](https://pypi.org/project/agentguard/)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://pypi.org/project/agentguard/)
+[![Release](https://img.shields.io/github/v/release/yingchen-coding/agentguard)](https://github.com/yingchen-coding/agentguard/releases)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A security scanner for the agent / command / skill definitions behind Claude Code (and any
 markdown-with-frontmatter agent harness). It parses what **tools each agent can use** and finds the
 prompt-injection and capability holes that turn *"summarize this file"* into remote code execution
-or data exfiltration. Deterministic, zero-dependency, no API key — `pip install` and run it in CI.
+or data exfiltration. Deterministic, zero-dependency, no API key — install and run it in CI.
 
 ## I pointed it at Anthropic's own official agents. 17 of 19 were exposed.
 
@@ -53,7 +53,14 @@ There's a **runnable exploit** that proves the chain end-to-end (safe — no rea
 
 ```bash
 pip install git+https://github.com/yingchen-coding/agentguard
-agentguard ~/.claude        # scan your own agents, commands & skills
+agentguard --score ~/.claude   # scan your own agents, commands & skills
+```
+
+The score is a fast summary for local use and before/after hardening; the individual findings are
+the source of truth:
+
+```text
+Security grade: D (66/100) — 1 critical, 0 major, 0 minor across 8 definitions
 ```
 
 ---
@@ -81,8 +88,8 @@ agentguard ~/.claude        # scan your own agents, commands & skills
 ## Install
 
 ```bash
-pip install agentguard
-# or from source:
+pip install git+https://github.com/yingchen-coding/agentguard
+# or for development:
 git clone https://github.com/yingchen-coding/agentguard && cd agentguard && pip install -e .
 ```
 
@@ -94,6 +101,7 @@ Python ≥ 3.9, zero dependencies.
 agentguard                       # scan ./  (auto-discovers agents/, commands/, skills/)
 agentguard path/to/agent.md      # one file
 agentguard owner/repo            # vet a plugin BEFORE you install it (shallow-clones & scans)
+agentguard --score ~/.claude     # one-line A–F security grade after the detailed findings
 agentguard --fix .               # auto-harden: add the missing data-not-instructions guard
 agentguard --select AL300,AL301,AL302,AL303,AL305 .   # security rules only
 agentguard --publish-check .     # + repo checks: LICENSE, README, secrets, malware
@@ -216,7 +224,12 @@ jobs:
           upload-sarif: "true"     # findings appear inline on the PR
 ```
 
-Or just `pip install agentguard && agentguard .` as a step.
+Or install directly from the repository in a normal workflow step:
+
+```yaml
+- run: pip install git+https://github.com/yingchen-coding/agentguard
+- run: agentguard --score .
+```
 
 ### Keep it from rotting
 
@@ -238,14 +251,14 @@ agentguard --baseline .agentguard-baseline.json .          # in CI: fails only o
 ```
 agentguard/
   models.py   parse frontmatter + body → Definition, incl. the parsed tool grant + capability model
-  rules.py    23 deterministic rules (Definition → Findings); AL3xx reason over capabilities
+  rules.py    deterministic rules (Definition → Findings); AL3xx reason over capabilities
   linter.py   discover files, run rules, sort findings, compute exit code
   report.py   human / json / sarif renderers
   cli.py      argument parsing + wiring
 ```
 
 Every rule is a pure function `(Definition) -> list[Finding]`, calibrated against real agents.
-Adding a rule is ~15 lines and a test. `pytest` runs the suite (66 tests).
+Adding a rule is ~15 lines and a test. `pytest` runs the suite (103 tests).
 
 ## Pairs with `adversarial-critic`
 
