@@ -3,7 +3,10 @@
 All notable changes are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## 0.1.3 — 2026-06-13
+
+Precision hardened against a 450-agent real-world corpus (not just the in-repo benchmark), severity recalibrated so `critical` means a security exposure, and recall extended to two new exfiltration channels. Benchmark held at 100% precision / 93% recall throughout; 137 tests.
+
 
 - **Docs accuracy (launch-critical):** re-baselined the marketplace headline to the numbers the
   *current* rules produce, **deduplicated to unique definitions** — **85% no-guard / 39%
