@@ -3,7 +3,7 @@
 > **Your AI agent can be hijacked by a comment in a file it reads.** agentguard catches it before it ships.
 
 [![CI](https://github.com/yingchen-coding/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/yingchen-coding/agentguard/actions)
-[![Release](https://img.shields.io/github/v/release/yingchen-coding/agentguard)](https://github.com/yingchen-coding/agentguard/releases/latest)
+[![Version](https://img.shields.io/github/v/tag/yingchen-coding/agentguard?sort=semver&label=version)](https://github.com/yingchen-coding/agentguard/tags)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -243,7 +243,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: yingchen-coding/agentguard@v0.1.2
+      - uses: yingchen-coding/agentguard@v0.1.3
         with:
           path: .claude
           fail-at: major
@@ -264,7 +264,7 @@ Catch a bad definition before it's ever committed. Add to `.pre-commit-config.ya
 ```yaml
 repos:
   - repo: https://github.com/yingchen-coding/agentguard
-    rev: v0.1.2
+    rev: v0.1.3
     hooks:
       - id: agentguard
 ```
