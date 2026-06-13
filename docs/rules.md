@@ -14,15 +14,15 @@ defaults in `[tool.agentguard]`.
 
 These keep a definition discoverable and routable by the harness.
 
-### AL001 · missing frontmatter · critical
+### AL001 · missing frontmatter · major
 No `---` YAML block. Claude Code discovers definitions by their frontmatter; without it the file is
 invisible. **Fix:** add a frontmatter block with at least `name` and `description`.
 
-### AL002 · missing `name` · critical
+### AL002 · missing `name` · major
 An agent/skill with no `name`. (Commands are invoked by filename and are exempt.) **Fix:** add
 `name:`.
 
-### AL003 · missing `description` · critical
+### AL003 · missing `description` · major
 No `description`. The model selects which agent to invoke from its description; without one it can't
 be chosen deliberately. **Fix:** add a description that says what it does *and* when to use it.
 

@@ -209,7 +209,7 @@ hatches: a `.agentguardignore` (gitignore-style) and inline `# agentguard-allow 
 
 **AL0xx — structure & discovery** · **AL1xx — clarity**
 
-| AL001–005 | crit/major/minor | Missing frontmatter / `name` / `description`; description has no trigger; too short |
+| AL001–005 | major/minor | Missing frontmatter / `name` / `description` (major); description has no trigger (major); too short (minor) |
 | AL100 | major | Vague instruction (`be careful`, `as appropriate`, `try to`) |
 | AL101 | major | Aspirational, unenforceable safety (`be accurate`) with no mechanism |
 
