@@ -127,6 +127,34 @@ _NOUN_USE = re.compile(
 # A destructive verb immediately followed by a file extension ("deploy.md", "delete.py") is a
 # filename, not an action.
 _FILENAME_SUFFIX = re.compile(r"\.\w{1,4}\b")
+# Lexical collisions that are not the destructive *act*: an HTTP method ("POST /users", "on POST",
+# "POST request"), the "Post-" prefix meaning *after* ("Post-Deployment", "Post-mortem"), or "post"
+# as a noun ("a blog post", "the post"). These dominate the false positives on real coding agents.
+_HTTP_METHOD_SUFFIX = re.compile(
+    r"^\s*(?:/|[\w-]+\s*/|request|endpoint|method|body|handler|route|param|call\b|/\w)",
+    re.IGNORECASE)
+_HTTP_METHOD_PREFIX = re.compile(r"(?:GET|PUT|PATCH|HTTP|REST|API|curl\s+-X|method:?)\s*$",
+                                 re.IGNORECASE)
+_POST_NOUN_PREFIX = re.compile(r"(?:\b(?:a|the|each|this|blog|engineering|forum|social)[- ])\s*$",
+                               re.IGNORECASE)
+# Other HTTP verbs in the body → an all-caps "POST" is the method, not the act of posting.
+_HTTP_VERBS = re.compile(
+    r"\b(?:GET|PUT|PATCH|DELETE|HEAD|OPTIONS)\b\s*/?|\bHTTP\b|\bREST\b|\bendpoint")
+
+
+def _in_noise_context(body: str, pos: int) -> bool:
+    """A verb sitting in a markdown table row, a parenthetical, or a fenced code block is being
+    *described* (a capability table, a flow note like "(execute fixes)", a code comment) — not
+    issued as an imperative action the agent performs. Real instructions are plain prose lines."""
+    if body[:pos].count("```") % 2 == 1:                       # inside a fenced code block
+        return True
+    ls = body.rfind("\n", 0, pos) + 1
+    le = body.find("\n", pos)
+    line = body[ls:(le if le != -1 else len(body))]
+    col = pos - ls
+    if "|" in line:                                            # markdown table row
+        return True
+    return "(" in line[:col] and ")" in line[col:]             # inside a parenthetical
 # High-stakes assertion verbs (where verify-before-assert matters most).
 _ASSERTIVE = re.compile(
     r"\b(recommend|diagnos|prescrib|advis|conclud|determine (?:that|whether)|assert|"
@@ -364,11 +392,25 @@ def unscoped_destructive_capability(d: Definition) -> list[Finding]:
     # performing it. Without this, the rule cries wolf on linters and PR reviewers.
     m = None
     for mm in _DESTRUCTIVE.finditer(d.body):
+        if _in_noise_context(d.body, mm.start()):  # table cell / parenthetical / code fence
+            continue
         pre = d.body[max(0, mm.start() - 24):mm.start()]
         if _DESC_FRAME.search(pre) or pre.endswith("/"):
             continue
         suf = d.body[mm.end():mm.end() + 16]
         if _NOUN_USE.match(suf) or _FILENAME_SUFFIX.match(suf):  # noun usage or a filename
+            continue
+        verb = mm.group(0).lower()
+        # "post"/"POST": skip the HTTP method (route/request suffix, REST context, or all-caps verb
+        # among GET/PUT/PATCH), the "Post-" (after) prefix, and the noun ("a blog post").
+        if verb.startswith("post"):
+            all_caps_http = mm.group(0).isupper() and _HTTP_VERBS.search(d.body)
+            if (suf.startswith("-") or _HTTP_METHOD_SUFFIX.match(suf) or all_caps_http
+                    or _HTTP_METHOD_PREFIX.search(pre) or _POST_NOUN_PREFIX.search(pre)):
+                continue
+        # "DELETE /path" / "PUT /path" as HTTP methods, not the destructive act
+        if verb in ("delete", "remove") and _HTTP_METHOD_SUFFIX.match(suf) \
+                and suf.lstrip().startswith("/"):
             continue
         m = mm
         break
