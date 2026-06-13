@@ -1,9 +1,13 @@
 version: 2
 updates:
   # Keep GitHub Actions pinned and current (the only external supply chain we have).
+  # Grouped into a single weekly PR so the repo stays on one branch, not one branch per bump.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
     commit-message:
       prefix: ci
+    groups:
+      github-actions:
+        patterns: ["*"]
