@@ -435,3 +435,32 @@ def test_exit_code_threshold():
     assert report.exit_code(Severity.MAJOR) == 0
     bad = Linter().lint([FIXTURES / "bad_agent.md"])
     assert bad.exit_code(Severity.MAJOR) == 1
+
+
+def test_al203_skips_http_methods_and_post_collisions():
+    # HTTP methods, the "Post-" prefix, and the noun "post" are not the destructive act.
+    for body in (
+        "Document the POST /users endpoint and its 201 response.",
+        "Run a Post-Deployment review after 30 days in production.",
+        "Summarize each blog post in two sentences.",
+        "Describe the GET, POST, and PUT semantics for the API.",
+    ):
+        raw = f"---\nname: f\ndescription: Use when documenting an API for the team\n---\n# B\n{body}\n"
+        assert "AL203" not in codes(run(raw)), body
+
+
+def test_al203_skips_described_actions_in_tables_parens_and_fences():
+    table = "---\nname: f\ndescription: Use when listing the available skills here\n---\n# B\n" \
+            "| skill | purpose |\n|---|---|\n| migrate | Execute database migrations safely |\n"
+    paren = "---\nname: f\ndescription: Use when routing work to other agents in the flow\n---\n# B\n" \
+            "Pipeline: troubleshooter (execute fixes) then reviewer checks them.\n"
+    fence = "---\nname: f\ndescription: Use when showing the cleanup command to the reader\n---\n# B\n" \
+            "```bash\n# remove the generated output\nmake clean\n```\n"
+    for raw in (table, paren, fence):
+        assert "AL203" not in codes(run(raw))
+
+
+def test_al203_still_fires_on_a_real_imperative_destructive_action():
+    raw = "---\nname: f\ndescription: Use when cleaning up old data for the user\n---\n# B\n" \
+          + "Delete the stale records to free space.\n" * 3
+    assert "AL203" in codes(run(raw))
