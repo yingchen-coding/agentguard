@@ -477,6 +477,16 @@ _EXFIL_GUARD = re.compile(
     r"offline only|never .* (?:externally|to the internet|over the network))\b",
     re.IGNORECASE,
 )
+# A rendered-output exfil channel that needs NO network tool: an injected markdown image whose URL
+# carries the data leaks it when the client renders it (the GET fires on render). High-signal forms
+# only — an external-URL image embed, or explicit tracking-pixel/beacon language — so it does not
+# fire on agents that merely mention images.
+_RENDER_EXFIL = re.compile(
+    r"!\[[^\]]*\]\(\s*https?://|"
+    r"\btracking[ -]?pixel\b|\bweb[ -]?beacon\b|\btelemetry pixel\b|"
+    r"\bembed\w*\b[^.\n]{0,40}\b(?:image|img|pixel)\b[^.\n]{0,40}https?://",
+    re.IGNORECASE,
+)
 # Hardcoded secrets — high-confidence literal token shapes.
 _SECRET_LITERAL = re.compile(
     r"(sk-[A-Za-z0-9_-]{16,}|ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|"
@@ -581,20 +591,29 @@ def exfiltration_path(d: Definition) -> list[Finding]:
     """The agent touches sensitive data and can reach the network. An injected instruction can
     turn that into 'read the secret, send it to my server'."""
     sensitive = _handles_sensitive(d)
-    if not (sensitive and d.has_network_sink()):
+    if not sensitive:
+        return []
+    has_tool = d.has_network_sink()
+    has_render = bool(_RENDER_EXFIL.search(d.body))
+    if not (has_tool or has_render):
         return []
     if _EXFIL_GUARD.search(d.body) or _INJECTION_GUARD.search(d.body):
         return []
     netcaps = sorted(d.capabilities & NETWORK_SINKS)
+    if has_tool:
+        channel = f"holds a network-capable tool ({'/'.join(netcaps) or 'network'})"
+    else:
+        channel = ("emits external image/URL markdown — a rendered-output exfil channel that needs "
+                   "no network tool (the client's GET fires on render)")
     ln = d.body[:sensitive.start()].count("\n") + d.fm_end_line + 1
     return [Finding("AL301", Severity.CRITICAL,
                     f"Exfiltration path: the agent handles sensitive data "
-                    f"(\"{sensitive.group(0)}\") and holds a network-capable tool "
-                    f"({'/'.join(netcaps) or 'network'}). An "
+                    f"(\"{sensitive.group(0)}\") and {channel}. An "
                     f"injected instruction can read the secret and send it out, with nothing "
                     f"forbidding it.",
-                    'Forbid outbound transmission of sensitive data explicitly, drop the network '
-                    'tool if not needed, or keep the agent offline.', ln)]
+                    'Forbid outbound transmission of sensitive data and external image/URL embeds '
+                    'explicitly, drop the network tool if not needed, or keep the agent offline.',
+                    ln)]
 
 
 @rule("AL302", "unrestricted tool grant — no least-privilege `tools:` field")
