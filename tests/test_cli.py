@@ -101,3 +101,15 @@ def test_config_ignored_with_no_config(tmp_path, capsys):
     data = json.loads(capsys.readouterr().out)
     rules = {x["rule"] for f in data["files"] for x in f["findings"]}
     assert "AL302" in rules
+
+
+def test_python_m_entrypoint_runs():
+    import subprocess
+    import sys
+
+    r = subprocess.run(
+        [sys.executable, "-m", "agentguard", "--version"],
+        capture_output=True, text=True,
+    )
+    assert r.returncode == 0
+    assert "agentguard" in r.stdout
