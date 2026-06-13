@@ -780,7 +780,9 @@ _DESTRUCTIVE_STRICT = re.compile(
 
 # Slash-command argument tokens that carry untrusted user input.
 _ARG_TOKEN = re.compile(
-    r"(\$ARGUMENTS\b|\$\{?ARGUMENTS\}?|\$[1-9]\b|\$\{?[1-9]\}?|\{\{\s*args?\s*\}\}|"
+    # Positional args ($1–$9) must NOT be followed by a word char, so money/IDs like "$150",
+    # "$5.0M", "$1M", "$50K" are not mistaken for a shell argument.
+    r"(\$ARGUMENTS\b|\$\{?ARGUMENTS\}?|\$[1-9](?![\w.,])|\$\{[1-9]\}|\{\{\s*args?\s*\}\}|"
     r"\$INPUT\b|\$USER_INPUT\b|\$\{?USER_INPUT\}?)"
 )
 # Real executable shell context (a fenced shell block, a `!`-prefixed line, or backtick CLI) —
@@ -788,6 +790,24 @@ _ARG_TOKEN = re.compile(
 _SHELL_CONTEXT = re.compile(
     rf"(```(?:bash|sh|shell|zsh|console)|^\s*!|`[^`\n]*\b(?:{_CLI}|sh -c|eval)\b|"
     rf"\bsh -c\b|\beval\b)", re.IGNORECASE | re.MULTILINE)
+_FENCE_OPEN = re.compile(r"^[ \t]*```([\w-]*)", re.MULTILINE)
+_SHELL_FENCE_LANGS = {"bash", "sh", "shell", "zsh", "console", "shell-session", "shellsession"}
+
+
+def _enclosing_fence_lang(body: str, pos: int) -> str | None:
+    """The language tag of the fenced code block containing `pos`, or None if `pos` is not inside
+    a fence. A bare ``` opens an empty-string lang."""
+    lang: str | None = None
+    for fm in _FENCE_OPEN.finditer(body):
+        if fm.start() > pos:
+            break
+        lang = None if lang is not None else fm.group(1).lower()
+    return lang
+
+
+def _in_shell_fence(body: str, pos: int) -> bool:
+    lang = _enclosing_fence_lang(body, pos)
+    return lang is not None and lang in _SHELL_FENCE_LANGS
 
 
 @rule("AL306", "over-privilege: a powerful tool is granted but never used")
@@ -877,9 +897,15 @@ def command_argument_injection(d: Definition) -> list[Finding]:
     if d.kind != "command":
         return []
     for am in _ARG_TOKEN.finditer(d.body):
-        # Shell context within the surrounding ~120 chars (same fenced block / instruction).
-        window = d.body[max(0, am.start() - 120):am.end() + 60]
-        if _SHELL_CONTEXT.search(window):
+        # The arg must actually sit IN a shell context — inside a shell fenced block, or on a
+        # `!`-prefixed / backtick-CLI line — not merely within 120 chars of one (a section
+        # placeholder "## Requirements\n$ARGUMENTS" near an unrelated ```bash block is not a splice,
+        # and "$ARGUMENTS" written into a ```json state file is data, not a command).
+        ls = d.body.rfind("\n", 0, am.start()) + 1
+        le = d.body.find("\n", am.end())
+        arg_line = d.body[ls:(le if le != -1 else len(d.body))]
+        in_shell = _in_shell_fence(d.body, am.start()) or _SHELL_CONTEXT.search(arg_line)
+        if in_shell:
             ln = d.body[:am.start()].count("\n") + d.fm_end_line + 1
             return [Finding("AL310", Severity.CRITICAL,
                             f'Untrusted command input ({am.group(0)}) is interpolated '

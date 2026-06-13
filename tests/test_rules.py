@@ -464,3 +464,20 @@ def test_al203_still_fires_on_a_real_imperative_destructive_action():
     raw = "---\nname: f\ndescription: Use when cleaning up old data for the user\n---\n# B\n" \
           + "Delete the stale records to free space.\n" * 3
     assert "AL203" in codes(run(raw))
+
+
+def test_al310_skips_args_in_data_blocks_and_money():
+    # $ARGUMENTS written into a JSON state file is data, not a shell splice.
+    js = ("---\ndescription: Track progress for the run\n---\n"
+          "Write `state.json`:\n```json\n{\n  \"target\": \"$ARGUMENTS\"\n}\n```\n")
+    # $4,050 / $150 are money, not positional args, even inside a fenced block.
+    money = ("---\ndescription: Estimate the cost of tech debt for the team\n---\n"
+             "```\nMonthly Cost: 3 bugs x 9 hours x $150 = $4,050\n```\n")
+    for raw in (js, money):
+        assert "AL310" not in codes(run(raw, kind="command")), raw
+
+
+def test_al310_still_fires_on_arg_in_a_bash_fence():
+    raw = ("---\ndescription: Search the codebase for a term\n---\n"
+           "```bash\ngrep -rn \"$ARGUMENTS\" .\n```\n")
+    assert "AL310" in codes(run(raw, kind="command"))
