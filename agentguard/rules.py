@@ -457,7 +457,15 @@ _SENSITIVE = re.compile(
     r"\bhealth (?:record|data)|\bphi\b|\bpii\b|\bssn\b|social security number|"
     r"\bbank account|\bcredit card|\bfinancial (?:data|records?|account)|"
     r"\bpersonal(?:ly)? (?:data|information|identifiable)|\bcustomer (?:data|records?|pii)|"
-    r"\bbilling (?:details?|information))",
+    r"\bbilling (?:details?|information)|"
+    # Secret-store euphemisms: a "vault/keychain/wallet" in a possessive or contents framing is
+    # a credential store, not the "data vault" warehouse-modeling term or a "vault of <X>" idiom.
+    # Scoped tightly so "Data Vault 2.0", "vault of templates", "knowledge vault" don't match.
+    r"\b(?:secret|key|password|credential|crypto)[ _-]?(?:vault|store|manager)\b|"
+    r"\b(?:[a-z]+['’]s|the|a|member|user|account)\s+vault\b|"
+    r"\bvault\s+(?:contents?|secrets?|entries|items?|data)\b|"
+    r"\bkeychain\b|\bsecrets?\s+manager\b|\b(?:crypto|hardware)\s+wallet\b|"
+    r"\bwallet\s+(?:seed|key|secret|contents?))",
     re.IGNORECASE,
 )
 # Explicit "do not send data out" mitigation (separate from injection guard).
