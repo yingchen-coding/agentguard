@@ -5,6 +5,24 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- **Docs accuracy (launch-critical):** re-baselined the marketplace headline to the numbers the
+  *current* rules produce, **deduplicated to unique definitions** — **85% no-guard / 39%
+  security-finding / 5 critical across 33 unique defs in 6 plugins** (was 91% / 52% / 77 defs from
+  a larger pre-precision-fix snapshot; a naïve cache scan double-counts to ~63 because the plugin
+  cache keeps orphaned copies). README and `docs/findings.md` now state the dedup, the date, and
+  the tool version, explain why the number came down, and point the reproduce command at
+  `~/.claude/plugins` with a note about the duplicate copies.
+- **Severity calibration (bug):** AL001/AL002/AL003 (missing frontmatter / `name` / `description`) were rated **critical** — the same tier as an injection→RCE chain. A malformed or undiscoverable definition is a serious *reliability* defect, not a security exposure, so they are now **major**. `critical` is reserved for the security classes (injection→action, exfiltration, hardcoded secret, command injection); `--fail-at critical` is now a clean security gate. (Marketplace criticals correspondingly drop to 5, all unguarded destructive actions.)
+- **CLI:** added `python -m agentguard` support (`__main__.py`) alongside the console script.
+- **Packaging:** per-version Python classifiers (3.9–3.13), `Typing :: Typed`, and Repository /
+  Changelog project URLs for the PyPI page.
+- **Recall:** AL301 (exfiltration path) now detects the **secret-store euphemism** class —
+  `vault contents`, `member's/key/password/credential vault`, `secrets manager`, `keychain`,
+  `crypto wallet seed` — which previously slipped past the keyword list. Scoped to *exclude* the
+  warehouse-modeling "Data Vault 2.0" sense and the "vault of <X>" idiom; five new direct
+  precision/recall tests (`tests/test_sensitive_precision.py`) lock both sides. Benchmark recall
+  92% → 93%, precision still 100%. The remaining documented miss is now a *fully arbitrary*
+  euphemism — the genuine boundary of lexical detection, not an enumerable gap.
 - **Precision:** AL200 (no output-format) now recognizes a markdown table template and more
   phrasings ("your analysis output should be structured as", "in the following format", "produce a
   JSON/table") as a specified output — fewer false positives on agents that define their output as
