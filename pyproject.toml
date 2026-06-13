@@ -16,20 +16,28 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Security",
+    "Typing :: Typed",
 ]
 dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/yingchen-coding/agentguard"
+Repository = "https://github.com/yingchen-coding/agentguard"
 Issues = "https://github.com/yingchen-coding/agentguard/issues"
+Changelog = "https://github.com/yingchen-coding/agentguard/blob/main/CHANGELOG.md"
 
 [project.scripts]
 agentguard = "agentguard.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "ruff>=0.6", "mypy>=1.8", "build>=1"]
+dev = ["pytest>=7", "ruff>=0.6", "mypy>=1.8", "build>=1", "twine>=6.1", "packaging>=24.2"]
 
 [tool.setuptools]
 packages = ["agentguard"]
