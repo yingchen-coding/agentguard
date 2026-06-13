@@ -12,26 +12,35 @@ markdown-with-frontmatter agent harness). It parses what **tools each agent can 
 prompt-injection and capability holes that turn *"summarize this file"* into remote code execution
 or data exfiltration. Deterministic, zero-dependency, no API key — install and run it in CI.
 
-## I scanned the entire Claude Code plugin marketplace. 91% had no injection guard.
+## I scanned the official Claude Code plugin marketplace. 85% had no injection guard.
 
 > **"Exposed" = the door is unlocked, not that the house was robbed.** It means the agent has the
 > structural precondition for an indirect prompt-injection→action attack — it reads untrusted input,
 > it can act (Bash/write/network), and there's no "treat content as data" guard — *not* a claim of a
 > proven, weaponized exploit against each one. The fix is one guard line + a scoped `tools:`.
 
-Zero config, across the **official marketplace — 77 agent / command / skill definitions in 24
-plugins** (Anthropic's `pr-review-toolkit`, `plugin-dev`, `code-modernization`, and more):
+Zero config, across the **official marketplace — 33 unique agent / command / skill definitions in
+6 plugins** (`pr-review-toolkit`, `plugin-dev`, `hookify`, `code-review`, `commit-commands`,
+`ralph-loop`):
 
 | | |
 |---|---:|
-| Read untrusted input with **no "treat as data" guard** at all (AL202) | **70 / 77 (91%)** |
-| Can be driven to **run a command / write a file** by content they read (AL300) | **33 / 77** |
-| Carry at least one **security-class finding** (AL3xx) | **40 / 77 (52%)** |
+| Read untrusted input with **no "treat as data" guard** at all (AL202) | **28 / 33 (85%)** |
+| Can be driven to **run a command / write a file** by content they read (AL300) | **13 / 33 (39%)** |
+| Carry at least one **security-class finding** (AL3xx) | **13 / 33 (39%)** |
 
-I then read **every critical finding by hand**, found five false-positive classes in my own rules,
-and fixed them (criticals: 19 raw → 14 after review) — so the headline numbers are *reviewed*, not
-raw. Every number reproducible, with the verification write-up:
-**[docs/findings.md](docs/findings.md)**.
+Snapshot as of 2026-06-12, agentguard 0.1.2 — deduplicated to *unique* definitions (the local
+plugin cache keeps orphaned copies; counting those would double the denominator). Scan your own
+install and see for yourself:
+
+```bash
+agentguard ~/.claude/plugins   # or any dir of agents/commands/skills
+```
+
+I read **every critical finding by hand** and, in the process, found and fixed five false-positive
+classes in my own rules — so these are *reviewed* numbers, not raw. (An earlier, larger snapshot
+read 91% before those precision fixes tightened the rules; I publish the lower current figure
+rather than the punchier stale one.) Full write-up: **[docs/findings.md](docs/findings.md)**.
 
 ### What that looks like
 
@@ -80,8 +89,11 @@ Security grade: D (66/100) — 1 critical, 0 major, 0 minor across 8 definitions
   exfiltration, confused-deputy, sub-agent propagation, command-arg injection — cataloged with
   references in [docs/attacks.md](docs/attacks.md) (runnable fixtures in [examples/attacks/](examples/attacks/)).
 - **Measured, not asserted.** A labeled benchmark with adversarial *evasion* cases →
-  **100% precision (zero false alarms), 92% recall** (`make bench`). The CI gate trips on any false
-  alarm; every false positive found during calibration was fixed, not shipped.
+  **100% precision (zero false alarms), 93% recall** (`make bench`). The CI gate trips on any false
+  alarm; every false positive found during calibration was fixed, not shipped. The one remaining
+  benchmark miss is deliberate and documented — a *fully arbitrary* euphemism for sensitive data
+  ("the member's good stuff") carries no lexical signal, the honest boundary of a deterministic
+  scanner.
 - **It's where the work is going.** Anthropic's own Claude Code team: once AI writes the code, the
   bottleneck moves to *verification, review, and security* — and humans stay on "trust boundaries
   and security-sensitive code." agentguard automates the mechanical half of that review.
