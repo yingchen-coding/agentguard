@@ -482,7 +482,8 @@ _EXFIL_GUARD = re.compile(
 # only — an external-URL image embed, or explicit tracking-pixel/beacon language — so it does not
 # fire on agents that merely mention images.
 _RENDER_EXFIL = re.compile(
-    r"!\[[^\]]*\]\(\s*https?://|"
+    r"!\[[^\]]*\]\(\s*https?://|"                       # markdown image to an external URL
+    r"<img\b[^>]*\bsrc\s*=\s*[\"']?\s*https?://|"        # raw HTML <img src="http…"> (auto-loads)
     r"\btracking[ -]?pixel\b|\bweb[ -]?beacon\b|\btelemetry pixel\b|"
     r"\bembed\w*\b[^.\n]{0,40}\b(?:image|img|pixel)\b[^.\n]{0,40}https?://",
     re.IGNORECASE,
