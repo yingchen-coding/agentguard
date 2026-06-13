@@ -58,18 +58,26 @@ report-summarizer.md
 ✖ 2 findings — the fix is one guard sentence + a scoped `tools:` line.
 ```
 
-There's a **runnable exploit** that proves the chain end-to-end (safe — no real commands execute):
-`python examples/poc/exploit_demo.py`.
+### Prove it yourself — don't take my word for it
 
-### Try it in 10 seconds
+A security tool you can't verify is a vibe. Everything here is **deterministic and reproducible**:
+you run the command, you get the same answer I do. No API key, no LLM, no randomness.
 
 ```bash
 pip install git+https://github.com/yingchen-coding/agentguard
-agentguard --score ~/.claude   # scan your own agents, commands & skills
+
+# 1. Watch the attack fire, then watch agentguard catch it (safe — nothing real runs):
+python examples/poc/exploit_demo.py
+
+# 2. Scan your own installed agents (or vet someone else's repo before you install it):
+agentguard --score ~/.claude
+agentguard wshobson/agents      # 450+ real community agents, vetted in one command
 ```
 
-The score is a fast summary for local use and before/after hardening; the individual findings are
-the source of truth:
+The POC plants a hidden directive in a file the agent "summarizes"; on the vulnerable definition it
+reaches the execution sink, on the hardened one it's inert — then agentguard flags the vulnerable
+one with the exact finding. The `--score` is a fast A–F summary; individual findings are the source
+of truth:
 
 ```text
 Security grade: D (66/100) — 1 critical, 0 major, 0 minor across 8 definitions
@@ -88,12 +96,15 @@ Security grade: D (66/100) — 1 critical, 0 major, 0 minor across 8 definitions
   It catches **documented, real-world attack classes** — indirect injection, markdown-image
   exfiltration, confused-deputy, sub-agent propagation, command-arg injection — cataloged with
   references in [docs/attacks.md](docs/attacks.md) (runnable fixtures in [examples/attacks/](examples/attacks/)).
-- **Measured, not asserted.** A labeled benchmark with adversarial *evasion* cases →
-  **100% precision (zero false alarms), 93% recall** (`make bench`). The CI gate trips on any false
-  alarm; every false positive found during calibration was fixed, not shipped. The one remaining
-  benchmark miss is deliberate and documented — a *fully arbitrary* euphemism for sensitive data
-  ("the member's good stuff") carries no lexical signal, the honest boundary of a deterministic
-  scanner.
+- **Measured against reality, not a toy benchmark.** A labeled benchmark with adversarial
+  *evasion* cases gives **100% precision / 93% recall** (`make bench`, gated in CI) — but a
+  benchmark you wrote yourself flatters you. So the rules are tuned against **hundreds of real
+  community agents**: scanning a 450-agent corpus exposed rules that cried wolf on agents merely
+  *discussing* auth ("API key authentication", "credential management"), and those false-positive
+  classes were fixed, not hidden — AL301 dropped from 65 findings to 2 on that corpus, with recall
+  held. The one remaining benchmark miss is deliberately documented (a *fully arbitrary* euphemism
+  has no lexical signal — the honest boundary of a deterministic scanner). Precision is a number
+  this tool earns on code it didn't write, not a claim.
 - **It's where the work is going.** Anthropic's own Claude Code team: once AI writes the code, the
   bottleneck moves to *verification, review, and security* — and humans stay on "trust boundaries
   and security-sensitive code." agentguard automates the mechanical half of that review.
@@ -288,7 +299,7 @@ agentguard/
 ```
 
 Every rule is a pure function `(Definition) -> list[Finding]`, calibrated against real agents.
-Adding a rule is ~15 lines and a test. `pytest` runs the suite (103 tests).
+Adding a rule is ~15 lines and a test. `pytest` runs the suite (137 tests).
 
 ## Pairs with `adversarial-critic`
 
