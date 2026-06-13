@@ -192,7 +192,7 @@ def _fm_get(d: Definition, key: str) -> str:
 @rule("AL001", "missing frontmatter — definition is undiscoverable")
 def missing_frontmatter(d: Definition) -> list[Finding]:
     if not d.frontmatter:
-        return [Finding("AL001", Severity.CRITICAL,
+        return [Finding("AL001", Severity.MAJOR,
                         "No YAML frontmatter — Claude Code cannot discover this definition.",
                         "Add a `---` frontmatter block with at least `name` and `description`.", 1)]
     return []
@@ -205,7 +205,7 @@ def missing_name(d: Definition) -> list[Finding]:
     if not d.frontmatter:
         return []  # AL001 already covers this
     if not _fm_get(d, "name"):
-        return [Finding("AL002", Severity.CRITICAL,
+        return [Finding("AL002", Severity.MAJOR,
                         f"{d.kind} has no `name` in frontmatter.",
                         "Add `name: <agent-name>` to the frontmatter.", 1)]
     return []
@@ -216,7 +216,7 @@ def missing_description(d: Definition) -> list[Finding]:
     if not d.frontmatter:
         return []
     if not _fm_get(d, "description"):
-        return [Finding("AL003", Severity.CRITICAL,
+        return [Finding("AL003", Severity.MAJOR,
                         "No `description` — the model can't decide when to invoke this.",
                         "Add a `description` that says what it does AND when to use it.", 1)]
     return []
