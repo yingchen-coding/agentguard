@@ -574,14 +574,46 @@ _EXPOSURE_SUFFIX = re.compile(
     r"expos\w+|leak\w*|stored (?:in|insecurely)|hardcoded)\b",
     re.IGNORECASE,
 )
+# The secret named as a *topic / feature / design concern* ("API key management", "credential
+# rotation", "PII handling", "refresh tokens - API keys: generation") — a coding agent whose
+# subject matter is auth, not an agent that reads a live secret. This is the dominant real-world
+# false positive (≈97% of AL301 hits on a 450-agent corpus). Treat it as not-handled.
+_TOPIC_SUFFIX = re.compile(
+    r"^\s*(?:management|managing|authentication|authoriz\w*|rotation|generation|provisioning|"
+    r"structure|validation|integration|handling|storage|lifecycle|best practices?|guidelines?|"
+    r"scopes?|support|strateg\w+|policies|policy|schema|design|patterns?|architecture)\b",
+    re.IGNORECASE,
+)
+# An *operational* verb acting on the secret — the agent actually reads/obtains/sends the value,
+# which is what creates an exfil path. Without one nearby, the term is just being talked about.
+_HANDLE_VERB = re.compile(
+    r"\b(read|fetch\w*|retriev\w*|access\w*|load\w*|pull\w*|grab\w*|obtain\w*|get|query\w*|"
+    r"sync\w*|export\w*|extract\w*|recover\w*|decrypt\w*|dump\w*|print\w*|echo|open\w*|"
+    r"look\s*up|look\b|send\w*|post\w*|upload\w*|transmit\w*|forward\w*|relay\w*|leak\w*|"
+    r"exfiltrat\w*|includ\w*|embed\w*|return\w*|output\w*|copy|paste|writ\w*|sav\w*|log\b)\b",
+    re.IGNORECASE,
+)
 
 
 def _handles_sensitive(d: Definition) -> re.Match[str] | None:
-    """Return the first sensitive match that is actually *handled* (not merely audited for)."""
+    """Return the first sensitive match the agent actually *handles* — reads/obtains/sends the
+    value — not one it merely audits for or names as an auth topic it builds."""
     for m in _SENSITIVE.finditer(d.body):
         prefix = d.body[max(0, m.start() - 22):m.start()]
-        suffix = d.body[m.end():m.end() + 20]
+        suffix = d.body[m.end():m.end() + 24]
         if _META_FRAME.search(prefix) or _EXPOSURE_SUFFIX.search(suffix):
+            continue
+        if _TOPIC_SUFFIX.search(suffix):
+            continue
+        # "credentials" in the SEO / résumé sense = professional qualifications, not a secret
+        # ("author bio with credentials", "E-E-A-T credentials").
+        if m.group(0).lower().startswith("credential") and re.search(
+                r"\b(author|bio|byline|e-?e-?a-?t|expertise|qualif\w*|résumé|resume)\b",
+                d.body[max(0, m.start() - 40):m.end() + 10], re.IGNORECASE):
+            continue
+        # Require an operational handling verb within the surrounding clause; otherwise the secret
+        # is named as a topic/feature, not read or sent.
+        if not _HANDLE_VERB.search(d.body[max(0, m.start() - 55):m.end() + 25]):
             continue
         return m
     return None

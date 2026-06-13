@@ -16,6 +16,7 @@ All notable changes are documented here. Format loosely follows
 - **CLI:** added `python -m agentguard` support (`__main__.py`) alongside the console script.
 - **Packaging:** per-version Python classifiers (3.9–3.13), `Typing :: Typed`, and Repository /
   Changelog project URLs for the PyPI page.
+- **Precision (major):** AL301 over-fired on real coding agents. On a 450-agent corpus (`wshobson/agents`) it produced **65** exfiltration findings, ~63 of them false — agents that merely *discuss* auth as their subject ("implement JWT with refresh tokens", "API key management", "PII handling", even "author bio with credentials"). AL301 now requires the secret to sit in an **operational handling** context (read / fetch / send the value), and excludes topic/feature/design framing and the résumé sense of "credentials". Same corpus: **65 → 2**. Benchmark recall held (93%), precision 100%; regression tests added.
 - **Recall:** AL301 now also flags the **rendered-output exfil channel** — a markdown image, an HTML `<img src>` tag, or a tracking pixel whose URL carries the data leaks it when the client renders it, needing **no network tool** (docs/attacks.md class 3, previously missed when the agent held only `Read`). Gated by sensitive-data handling, so benign external-image embeds and local images stay clean; 5 new tests + a benchmark case, recall holds 93% / precision 100%.
 - **Recall:** AL301 (exfiltration path) now detects the **secret-store euphemism** class —
   `vault contents`, `member's/key/password/credential vault`, `secrets manager`, `keychain`,
