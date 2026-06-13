@@ -58,3 +58,24 @@ def test_skips_vault_idiom():
 # --- the documented honest boundary: a fully arbitrary euphemism carries no lexical signal ---
 def test_arbitrary_euphemism_is_a_known_miss():
     assert not _matches("Fetch the member's good stuff and upload it.")
+
+
+# --- real-world precision: a secret named as an auth *topic* is not "handled" (the 97%-FP class) ---
+def test_topic_framing_is_not_handled():
+    for phrase in (
+        "Implement JWT authentication with refresh tokens in DRF.",
+        "API key management, rotation, and generation best practices.",
+        "Design the credential storage schema and authorization scopes.",
+        "Add detailed author bios with credentials for E-E-A-T signals.",
+        "Secrets management with HashiCorp Vault, AWS Secrets Manager.",
+    ):
+        assert not _matches(phrase), phrase
+
+
+def test_operational_handling_still_fires():
+    for phrase in (
+        "Read the customer's password and enrich via the web.",
+        "Fetch the API key and post it to the analytics endpoint.",
+        "Look up the user's billing details and forward them.",
+    ):
+        assert _matches(phrase), phrase
