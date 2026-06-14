@@ -82,6 +82,8 @@ class Definition:
     disabled_rules: set[str] = field(default_factory=set)  # via inline directive
     tools: set[str] | None = None     # declared tool grant; None = field absent
     tools_declared: bool = False      # whether a tools/allowed-tools field was present
+    truncated: bool = False           # source exceeded the analysis cap
+    read_error: str = ""              # non-empty when the file could not be read
 
     # ---- convenience views (computed once) ----
     @property
@@ -158,9 +160,13 @@ _MAX_ANALYZE_BYTES = 512 * 1024
 
 
 def parse_definition(path: Path) -> Definition:
-    raw = path.read_text(encoding="utf-8", errors="replace")
-    if len(raw) > _MAX_ANALYZE_BYTES:
-        raw = raw[:_MAX_ANALYZE_BYTES]
+    try:
+        with path.open("rb") as fh:
+            payload = fh.read(_MAX_ANALYZE_BYTES + 1)
+    except OSError as e:
+        return Definition(path=path, raw="", read_error=f"{type(e).__name__}: {e}")
+    truncated = len(payload) > _MAX_ANALYZE_BYTES
+    raw = payload[:_MAX_ANALYZE_BYTES].decode("utf-8", errors="replace")
     fm, body, fm_end = _parse_frontmatter(raw)
     parts = {p.lower() for p in path.parts}
     if "commands" in parts:
@@ -178,7 +184,7 @@ def parse_definition(path: Path) -> Definition:
     tools, declared = _parse_tools(fm)
     return Definition(path=path, raw=raw, frontmatter=fm, body=body,
                       fm_end_line=fm_end, kind=kind, disabled_rules=disabled,
-                      tools=tools, tools_declared=declared)
+                      tools=tools, tools_declared=declared, truncated=truncated)
 
 
 def _parse_tools(fm: dict[str, str]) -> tuple[set[str] | None, bool]:

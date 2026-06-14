@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "measured_on": "2026-06-12",
+  "max_age_days": 45,
+  "agentguard_version": "0.1.2",
+  "scope": {
+    "unique_definitions": 33,
+    "plugins": 6
+  },
+  "findings": {
+    "no_injection_guard": {
+      "count": 28,
+      "percent": 85
+    },
+    "injection_to_action": {
+      "count": 13,
+      "percent": 39
+    },
+    "security_class": {
+      "count": 13,
+      "percent": 39
+    }
+  }
+}

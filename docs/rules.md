@@ -14,6 +14,10 @@ defaults in `[tool.agentguard]`.
 
 These keep a definition discoverable and routable by the harness.
 
+### AL000 · unreadable definition · major
+The file could not be read, so the scanner cannot establish that it is safe. **Fix:** restore
+read permission or repair the path, then rerun. Unreadable never means clean.
+
 ### AL001 · missing frontmatter · major
 No `---` YAML block. Claude Code discovers definitions by their frontmatter; without it the file is
 invisible. **Fix:** add a frontmatter block with at least `name` and `description`.
@@ -32,6 +36,10 @@ trigger is implicit. **Fix:** add "Use this when …" / "when the user asks to �
 
 ### AL005 · description too short · minor
 Under ~40 characters — too thin to route on reliably. **Fix:** expand to a sentence or two.
+
+### AL006 · definition exceeds analysis limit · major
+The definition is larger than the 512 KiB analysis cap. A prefix-only scan could miss instructions
+later in the file. **Fix:** split or reduce generated content until the full definition is scanned.
 
 ---
 

@@ -38,6 +38,9 @@ def test_sarif_format_is_valid(capsys):
     data = json.loads(out)
     assert data["version"] == "2.1.0"
     assert data["runs"][0]["results"]
+    rule = data["runs"][0]["tool"]["driver"]["rules"][0]
+    assert rule["shortDescription"]["text"]
+    assert "Fix:" not in rule["shortDescription"]["text"]
 
 
 def test_select_limits_rules(capsys):
@@ -101,6 +104,17 @@ def test_config_ignored_with_no_config(tmp_path, capsys):
     data = json.loads(capsys.readouterr().out)
     rules = {x["rule"] for f in data["files"] for x in f["findings"]}
     assert "AL302" in rules
+
+
+def test_explicit_fail_at_major_overrides_config_critical(tmp_path, capsys):
+    (tmp_path / "agents").mkdir()
+    (tmp_path / "agents" / "a.md").write_text(
+        "---\nname: a\ndescription: Use this when doing a general task for the user\n---\n# A\n"
+        "Do the requested work.\n"
+    )
+    (tmp_path / "pyproject.toml").write_text("[tool.agentguard]\nfail-at = \"critical\"\n")
+    assert main([str(tmp_path)]) == 0
+    assert main([str(tmp_path), "--fail-at", "major"]) == 1
 
 
 def test_python_m_entrypoint_runs():

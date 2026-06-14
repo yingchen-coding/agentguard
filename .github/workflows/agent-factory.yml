@@ -1,0 +1,71 @@
+name: agent-factory
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_issue:
+        description: "Update the human-reviewed corpus audit issue"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "41 4 * * 2"
+
+permissions:
+  contents: read
+
+jobs:
+  corpus-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - uses: actions/cache@v4
+        with:
+          path: .agentguard-corpus-state.json
+          key: corpus-state-${{ github.run_id }}
+          restore-keys: |
+            corpus-state-
+      - name: Scan, deduplicate, diff, and generate repair patches
+        run: |
+          args=(--manifest corpus/manifest.json --output build/corpus-audit --jobs 3)
+          if [[ -f .agentguard-corpus-state.json ]]; then
+            args+=(--state .agentguard-corpus-state.json)
+          fi
+          python3 tools/corpus_audit.py "${args[@]}"
+          cp build/corpus-audit/state.json .agentguard-corpus-state.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: agentguard-corpus-audit
+          path: build/corpus-audit/
+          if-no-files-found: error
+
+  publish-reviewed-summary:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_issue
+    needs: corpus-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: corpus-publish
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: agentguard-corpus-audit
+          path: build/corpus-audit
+      - name: Create or update one deduplicated audit issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/publish_audit_issue.py \
+            --report build/corpus-audit/report.md \
+            --repo "${{ github.repository }}" \
+            --title "AgentGuard corpus audit" \
+            --confirm-publish
