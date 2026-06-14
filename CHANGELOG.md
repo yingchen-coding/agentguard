@@ -29,6 +29,9 @@ All notable changes are documented here. Format loosely follows
   encountered first.
 - Reduced CI noise: the Python compatibility matrix runs tests only; semantic benchmark/package
   gates run once in a dedicated quality job.
+- Fixed pytest 9 collection by explicitly adding the repository root to pytest's import path and
+  invoking tests through the selected matrix interpreter. Matrix fail-fast is disabled so one
+  version cannot erase diagnostics from the others.
 
 ## 0.1.3 — 2026-06-13
 
