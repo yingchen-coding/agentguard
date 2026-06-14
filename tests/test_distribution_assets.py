@@ -31,3 +31,9 @@ def test_source_distribution_includes_factory_dependencies():
     assert "recursive-include tests/fixtures *.md" in manifest
     assert "include action.yml" in manifest
     assert "recursive-include .github/workflows *.yml" in manifest
+
+
+def test_ci_invokes_pytest_through_the_selected_python():
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "python -m pytest -q" in workflow
+    assert "fail-fast: false" in workflow
