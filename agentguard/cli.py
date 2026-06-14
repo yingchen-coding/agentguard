@@ -30,7 +30,7 @@ def build_parser() -> argparse.ArgumentParser:
                    help="files or directories to lint (default: current directory)")
     p.add_argument("-f", "--format", choices=["human", "json", "sarif"], default="human",
                    help="output format (default: human)")
-    p.add_argument("--fail-at", choices=list(_SEV_NAMES), default="major",
+    p.add_argument("--fail-at", choices=list(_SEV_NAMES), default=None,
                    help="minimum severity that makes the run fail (exit 1). default: major")
     p.add_argument("--select", metavar="CODES",
                    help="only run these rule codes (comma-separated, e.g. AL202,AL203)")
@@ -57,20 +57,9 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-_PROJECT_RULES = [
-    ("AL500", "no LICENSE file (repo legally unusable when public)"),
-    ("AL501", "no README"),
-    ("AL502", "unresolved placeholder (YOUR_USERNAME, CHANGEME, …)"),  # agentguard-allow AL502
-    ("AL503", "hardcoded secret committed in the repo"),
-    ("AL510", "pipe-to-shell execution (curl … | sh)"),  # agentguard-allow AL510
-    ("AL511", "dynamic exec of decoded/remote content"),
-    ("AL512", "reverse-shell / raw-socket signature"),
-    ("AL513", "install hook runs the shell/network (pre/postinstall)"),
-]
-
-
 def _list_rules() -> int:
     from .frameworks import short_refs
+    from .project import PROJECT_TITLES
     from .rules import TITLES
 
     def line(code: str, title: str) -> str:
@@ -81,9 +70,9 @@ def _list_rules() -> int:
     for code, _ in all_rules():
         print(line(code, TITLES.get(code, "")))
     print("\n  -- AL5xx: repo-level, run with --publish-check --")
-    for code, title in _PROJECT_RULES:
+    for code, title in PROJECT_TITLES.items():
         print(line(code, title))
-    total = len(all_rules()) + len(_PROJECT_RULES)
+    total = len(all_rules()) + len(PROJECT_TITLES)
     print(f"\n{total} rules, mapped to OWASP LLM Top 10 (2025) & MITRE ATLAS. Disable inline with "
           f"`<!-- agentguard-disable AL202 -->`\n(or `# agentguard-allow AL510` in code), or "
           f"globally with --ignore. Full reference: docs/rules.md, docs/threat-mapping.md.")
@@ -141,8 +130,7 @@ def _run(args: argparse.Namespace, paths: list[Path]) -> int:
     select = _parse_codes(args.select) if args.select else _codes(cfg.get("select"))
     ignore = _parse_codes(args.ignore) if args.ignore else (_codes(cfg.get("ignore")) or set())
     cfg_fail = cfg.get("fail_at")
-    fail_at = args.fail_at if args.fail_at != "major" else \
-        (cfg_fail if isinstance(cfg_fail, str) else "major")
+    fail_at = args.fail_at or (cfg_fail if isinstance(cfg_fail, str) else "major")
     publish_check = args.publish_check if args.publish_check is not None \
         else bool(cfg.get("publish_check", False))
     if fail_at not in _SEV_NAMES:

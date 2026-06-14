@@ -8,10 +8,15 @@ on:
   schedule:
     - cron: "27 3 * * 1"   # weekly, Monday 03:27 UTC
 
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze (python)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       actions: read
       contents: read

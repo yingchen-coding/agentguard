@@ -22,3 +22,12 @@ def test_publish_workflow_uses_oidc():
     assert "id-token: write" in workflow
     assert "pypa/gh-action-pypi-publish@release/v1" in workflow
     assert "password:" not in workflow
+
+
+def test_source_distribution_includes_factory_dependencies():
+    manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
+    for directory in ("corpus", "eval", "evidence", "schemas", "skills", "tools"):
+        assert f"recursive-include {directory} " in manifest
+    assert "recursive-include tests/fixtures *.md" in manifest
+    assert "include action.yml" in manifest
+    assert "recursive-include .github/workflows *.yml" in manifest

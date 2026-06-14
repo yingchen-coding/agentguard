@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "workflows": {
+    ".github/workflows/ci.yml": {
+      "max_jobs_after_matrix": 7,
+      "require_job_timeouts": true,
+      "require_cancel_in_progress": true,
+      "command_budgets": {
+        "eval/benchmark.py": 1,
+        "python -m build": 1,
+        "twine check": 1
+      }
+    },
+    ".github/workflows/agent-factory.yml": {
+      "max_jobs_after_matrix": 2,
+      "require_job_timeouts": true,
+      "require_cancel_in_progress": false,
+      "command_budgets": {
+        "tools/corpus_audit.py": 1,
+        "tools/publish_audit_issue.py": 1
+      }
+    },
+    ".github/workflows/codeql.yml": {
+      "max_jobs_after_matrix": 1,
+      "require_job_timeouts": true,
+      "require_cancel_in_progress": true,
+      "command_budgets": {}
+    },
+    ".github/workflows/publish.yml": {
+      "max_jobs_after_matrix": 2,
+      "require_job_timeouts": true,
+      "require_cancel_in_progress": false,
+      "command_budgets": {
+        "python -m build": 1,
+        "twine check": 1
+      }
+    }
+  }
+}

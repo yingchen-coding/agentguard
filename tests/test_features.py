@@ -75,6 +75,24 @@ def test_oversized_file_is_capped(tmp_path):
                  encoding="utf-8")
     d = parse_definition(p)  # must not hang or blow up
     assert len(d.raw) <= _MAX_ANALYZE_BYTES
+    assert d.truncated is True
+    found = {x.rule for r in Linter().lint([p]).results for x in r.findings}
+    assert "AL006" in found
+
+
+def test_unreadable_definition_fails_closed(tmp_path, monkeypatch):
+    p = tmp_path / "agents" / "unreadable.md"
+    p.parent.mkdir(parents=True)
+    p.write_text("# content")
+
+    def denied(*args, **kwargs):
+        raise PermissionError("denied by test")
+
+    monkeypatch.setattr(Path, "open", denied)
+    d = parse_definition(p)
+    assert d.read_error
+    found = {x.rule for x in Linter().lint_definition(d)}
+    assert found == {"AL000"}
 
 
 # ---- real attack fixtures ----

@@ -3,6 +3,33 @@
 All notable changes are documented here. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+- Added a maintained agent-factory layer: co-located maintainer and corpus-analyst skills, a
+  versioned corpus-audit schema, parallel real-repository scanning, stable deduplication,
+  new/unchanged/resolved state comparison, repair-patch generation, and a human-gated issue
+  publisher.
+- Benchmark now gates minimum recall, precision, false alarms, named known misses, and positive/
+  negative case inventory. Added metamorphic adversarial review so harmless prompt-structure
+  changes cannot silently alter security decisions.
+- Added contract verification across executable rules, direct test references, documentation,
+  framework mappings, release pins, evidence snapshots, schemas, and skills.
+- Added risk-based review packets for every PR, with mandatory Skill/schema/test evidence and
+  explicit human-review domains for security, trust boundaries, releases, and external actions.
+- Added workflow-cost budgets covering every GitHub Actions workflow, including matrix expansion,
+  cancellation, timeouts, and duplicated expensive commands.
+- Corpus artifacts now record source revisions and the ambiguity/retrieval/execution/staleness
+  failure taxonomy; dated evidence now expires instead of remaining silently authoritative.
+- Added schema-aware corpus queries for summaries, hotspots, changes, repositories, failure modes,
+  revisions, duplicate rate, and repair coverage; the analyst no longer depends on raw grep.
+- Fail-closed scanning: unreadable definitions (AL000), oversized prefix-only scans (AL006), and
+  rule exceptions now produce major findings instead of silently appearing clean.
+- Fixed CLI precedence so an explicit `--fail-at major` overrides a config default of `critical`.
+- SARIF rule metadata now uses stable rule titles instead of whichever dynamic finding message was
+  encountered first.
+- Reduced CI noise: the Python compatibility matrix runs tests only; semantic benchmark/package
+  gates run once in a dedicated quality job.
+
 ## 0.1.3 — 2026-06-13
 
 Precision hardened against a 450-agent real-world corpus (not just the in-repo benchmark), severity recalibrated so `critical` means a security exposure, and recall extended to two new exfiltration channels. Benchmark held at 100% precision / 93% recall throughout; 137 tests.
