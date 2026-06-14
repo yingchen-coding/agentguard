@@ -78,14 +78,17 @@ class Linter:
     def lint_definition(self, definition: Definition) -> list[Finding]:
         findings: list[Finding] = []
         for code, fn in all_rules():
+            if definition.read_error and code != "AL000":
+                continue
             if not self._active(code, definition):
                 continue
             try:
                 findings.extend(fn(definition))
             except Exception as e:  # a buggy rule must never crash the whole run
-                findings.append(Finding(code, Severity.INFO,
+                findings.append(Finding(code, Severity.MAJOR,
                                         f"rule {code} raised {type(e).__name__}: {e}",
-                                        "This is an agentguard bug — please report it.", 0))
+                                        "This is an agentguard bug and a coverage gap — report it "
+                                        "and do not treat this scan as clean.", 0))
         findings.sort(key=lambda f: (-f.severity, f.line, f.rule))
         return findings
 

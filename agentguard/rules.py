@@ -12,6 +12,7 @@ import re
 from collections.abc import Callable
 
 from .models import (
+    _MAX_ANALYZE_BYTES,
     EXEC_SINKS,
     NETWORK_SINKS,
     SPAWN_SINKS,
@@ -217,8 +218,38 @@ def _fm_get(d: Definition, key: str) -> str:
 
 # ───────────────────────── AL0xx — structure & discovery ─────────────────────────
 
+@rule("AL000", "definition could not be read")
+def unreadable_definition(d: Definition) -> list[Finding]:
+    if d.read_error:
+        return [Finding(
+            "AL000", Severity.MAJOR,
+            f"Definition could not be read ({d.read_error}) — the scan cannot establish safety.",
+            "Fix the path/permissions and rerun agentguard; never treat an unreadable file "
+            "as clean.",
+            1,
+        )]
+    return []
+
+
+@rule("AL006", "definition exceeds the analysis limit")
+def oversized_definition(d: Definition) -> list[Finding]:
+    if d.truncated:
+        limit_kib = _MAX_ANALYZE_BYTES // 1024
+        return [Finding(
+            "AL006", Severity.MAJOR,
+            f"Definition exceeds the {limit_kib} KiB analysis limit — only a prefix was inspected, "
+            "so instructions hidden later in the file could evade the scan.",
+            "Split the definition or reduce generated content, then rerun until the full file is "
+            "analyzed.",
+            1,
+        )]
+    return []
+
+
 @rule("AL001", "missing frontmatter — definition is undiscoverable")
 def missing_frontmatter(d: Definition) -> list[Finding]:
+    if d.read_error:
+        return []  # AL000 is the only defensible conclusion
     if not d.frontmatter:
         return [Finding("AL001", Severity.MAJOR,
                         "No YAML frontmatter — Claude Code cannot discover this definition.",

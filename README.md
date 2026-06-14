@@ -231,6 +231,49 @@ assert.*
 
 ---
 
+## The maintained agent factory
+
+The scanner is one layer. The repository also ships the maintenance system around it:
+
+- **Skills that stay with the data model:** `skills/agentguard-maintainer/` defines the rule-change
+  workflow; `skills/agentguard-corpus-analyst/` provides self-service analysis over the versioned
+  [`corpus-audit` schema](schemas/corpus-audit.schema.json) through `tools/query_audit.py`, rather
+  than asking an agent to grep a large JSON blob.
+- **Quality cannot silently rot:** `eval/quality-baseline.json` gates minimum recall, precision,
+  adversarial inventory, false alarms, and the named known-miss set. Removing a hard case or
+  letting recall fall now fails CI.
+- **Adversarial review:** `eval/adversarial_review.py` applies harmless structural mutations
+  (bullets, blockquotes, section noise) and verifies that vulnerable cases remain caught while safe
+  cases remain quiet.
+- **Real-corpus loop:** `tools/corpus_audit.py` scans repositories in parallel, deduplicates copied
+  definitions by stable fingerprint, reports new/unchanged/resolved findings, and writes reviewable
+  repair patches for safe auto-fixes. It records source revisions and classifies ambiguity,
+  retrieval failure, execution risk, and aggregate staleness instead of hiding them in prose.
+- **Drift control:** `tools/verify_contracts.py` ties executable rules to tests, docs, framework
+  mappings, release pins, freshness-bounded evidence snapshots, schemas, and skills.
+- **Every PR gets a review packet:** `tools/change_review.py` derives security, trust-boundary,
+  release, data-model, docs, and developer-experience review domains from the diff, then fails when
+  required tests, benchmark evidence, schemas, or maintained Skills are missing.
+- **Automation has a budget:** `tools/workflow_audit.py` blocks unbounded jobs, unbudgeted workflow
+  files, excess matrix expansion, and duplicated expensive commands.
+- **Human-gated outward action:** the scheduled
+  [agent-factory workflow](.github/workflows/agent-factory.yml) uploads artifacts by default.
+  Updating the single deduplicated tracking issue requires a manual dispatch and an approved GitHub
+  environment.
+
+```bash
+make quality   # tests + types + benchmark + adversarial + drift/cost gates + package + self-scan
+make corpus    # parallel real-repository scan, dedup, state diff, and repair patches
+```
+
+The factory reports definitions scanned, source revisions, failure modes, unique findings,
+duplicate rate inputs, new/resolved findings, patches, failures, and wall time. It does not use
+token spend, workflow count, or agent count as a success metric.
+
+Full architecture: [docs/agent-factory.md](docs/agent-factory.md).
+
+---
+
 ## CI
 
 A ready-made GitHub Action ships in this repo (`action.yml`):
@@ -299,7 +342,8 @@ agentguard/
 ```
 
 Every rule is a pure function `(Definition) -> list[Finding]`, calibrated against real agents.
-Adding a rule is ~15 lines and a test. `pytest` runs the suite (137 tests).
+Adding a rule requires positive, near-miss, benchmark, adversarial, contract, and real-corpus
+evidence where applicable.
 
 ## Pairs with `adversarial-critic`
 

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "min_positive_cases": 15,
+  "min_negative_cases": 13,
+  "min_recall": 0.93,
+  "min_precision": 1.0,
+  "min_adversarial_variants": 81,
+  "max_false_alarms": 0,
+  "allowed_missed_cases": [
+    "known_miss_arbitrary_euphemism"
+  ]
+}

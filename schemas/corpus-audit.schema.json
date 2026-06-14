@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/yingchen-coding/agentguard/schemas/corpus-audit.schema.json",
+  "title": "AgentGuard corpus audit",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at_epoch",
+    "manifest",
+    "summary",
+    "repositories",
+    "diff",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "repositories_total",
+        "repositories_succeeded",
+        "success_rate",
+        "definitions_scanned",
+        "raw_findings",
+        "unique_findings",
+        "new",
+        "unchanged",
+        "resolved",
+        "patches",
+        "elapsed_seconds",
+        "failure_modes"
+      ],
+      "properties": {
+        "failure_modes": {
+          "type": "object",
+          "required": [
+            "retrieval_failure",
+            "staleness"
+          ]
+        }
+      }
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "source",
+          "ok",
+          "elapsed_seconds",
+          "definitions",
+          "findings",
+          "patch",
+          "error",
+          "revision"
+        ]
+      }
+    },
+    "diff": {
+      "type": "object",
+      "required": [
+        "new",
+        "unchanged",
+        "resolved"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "fingerprint",
+          "rule",
+          "severity",
+          "message",
+          "fix",
+          "refs",
+          "failure_mode",
+          "occurrences"
+        ],
+        "properties": {
+          "failure_mode": {
+            "enum": [
+              "ambiguity",
+              "retrieval_failure",
+              "execution_risk",
+              "other_quality"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

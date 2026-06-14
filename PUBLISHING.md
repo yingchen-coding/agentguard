@@ -16,7 +16,7 @@ automatically. The workflow builds in one job and publishes the exact uploaded a
 separate OIDC-only job, so no long-lived PyPI token is stored in GitHub.
 
 Annotated git tags alone do not trigger this workflow. After Trusted Publisher setup, publish a
-GitHub Release from the existing version tag (for example `v0.1.2`) or run the workflow manually.
+GitHub Release from the existing version tag (for example `vX.Y.Z`) or run the workflow manually.
 Verify both surfaces before changing the README install command:
 
 ```bash

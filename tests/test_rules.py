@@ -44,6 +44,19 @@ def test_al001_missing_frontmatter():
     assert "AL001" in codes(run("# Just a body\nno frontmatter here"))
 
 
+def test_rule_exception_is_a_failing_finding(monkeypatch):
+    from agentguard import rules
+
+    def broken(_definition):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(rules, "_REGISTRY", [("AL999", broken)])
+    findings = run("---\nname: x\ndescription: Use this when testing\n---\n# body")
+    assert len(findings) == 1
+    assert findings[0].rule == "AL999"
+    assert findings[0].severity == Severity.MAJOR
+
+
 def test_al002_missing_name():
     raw = "---\ndescription: Use this when you need a thing to happen reliably here\n---\n# body"
     assert "AL002" in codes(run(raw))

@@ -23,6 +23,17 @@ from pathlib import Path
 from .models import Finding, Severity
 from .rules import _SECRET_ASSIGN, _SECRET_LITERAL
 
+PROJECT_TITLES = {
+    "AL500": "no LICENSE file (repo legally unusable when public)",
+    "AL501": "no README",
+    "AL502": "unresolved placeholder shipped in",
+    "AL503": "hardcoded secret committed in the repo",
+    "AL510": "pipe-to-shell execution",
+    "AL511": "dynamic exec of decoded/remote content",
+    "AL512": "reverse-shell / raw-socket signature",
+    "AL513": "install hook runs the shell/network",
+}
+
 # Inline escape hatch, e.g. `curl x | sh  # agentguard-allow AL510` (also honors -disable).
 _ALLOW_RE = re.compile(r"agentguard-(?:allow|disable)\s+([A-Z0-9, ]+)")
 
