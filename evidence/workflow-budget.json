@@ -2,7 +2,7 @@
   "schema_version": 1,
   "workflows": {
     ".github/workflows/ci.yml": {
-      "max_jobs_after_matrix": 7,
+      "max_jobs_after_matrix": 8,
       "require_job_timeouts": true,
       "require_cancel_in_progress": true,
       "command_budgets": {

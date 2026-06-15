@@ -67,6 +67,39 @@ jobs:
       - run: python -m build
       - run: python -m twine check dist/*
 
+  action-smoke:
+    # Run the published composite action end-to-end (uses: ./) so the Marketplace
+    # wrapper is proven on every commit — install path, arg parsing, and exit codes.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      # Happy path: a clean target must exit 0 through the action wrapper.
+      - name: Action passes on a clean target
+        uses: ./
+        with:
+          path: skills
+          fail-at: major
+      # Gate path: findings at/above fail-at must fail the action. Capture the
+      # outcome and assert it failed, so a wrapper that silently passes is caught.
+      - name: Action fails on intentionally-flagged examples
+        id: gate
+        uses: ./
+        continue-on-error: true
+        with:
+          path: examples
+          fail-at: major
+      - name: Assert the gate actually failed
+        run: |
+          if [ "${{ steps.gate.outcome }}" != "failure" ]; then
+            echo "::error::action did not fail on examples/ — fail-at gate is broken"
+            exit 1
+          fi
+          echo "fail-at gate works: examples/ correctly failed the action."
+
   self-lint:
     # agentguard lints its own example definitions and runs its own supply-chain check — dogfooding.
     runs-on: ubuntu-latest
