@@ -72,6 +72,8 @@ jobs:
     # wrapper is proven on every commit — install path, arg parsing, and exit codes.
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
