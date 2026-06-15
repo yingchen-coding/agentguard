@@ -12,10 +12,27 @@
        alt="agentguard scanning an innocent-looking 'report-summarizer' agent: it flags a critical injection-to-RCE chain and a destructive action, then a rescan after the two-line fix returns a clean grade-A.">
 </p>
 
-A security scanner for the agent / command / skill definitions behind Claude Code (and any
-markdown-with-frontmatter agent harness). It parses what **tools each agent can use** and finds the
-prompt-injection and capability holes that turn *"summarize this file"* into remote code execution
-or data exfiltration. Deterministic, zero-dependency, no API key — install and run it in CI.
+**agentguard is a linter for AI agents** — `eslint`/`semgrep`, but for the markdown-with-frontmatter
+agent / command / skill definitions behind Claude Code (and any similar harness). Point it at a file
+or a folder of `.md` definitions; it parses **what tools each agent can use**, finds the
+prompt-injection and capability holes that turn *"summarize this file"* into remote code execution or
+data exfiltration, and returns specific, severity-ranked findings — each mapped to OWASP/MITRE and
+paired with the one-line fix. Deterministic, zero-dependency, no API key, no LLM call.
+
+### What you'd use it for
+
+- **You write agents, commands, or skills.** Lint them like code: catch a missing injection guard,
+  an over-broad `tools:` grant, a destructive action with no confirmation, or a vague instruction —
+  *before* it misbehaves in production. → `agentguard .`
+- **You're about to install someone's plugin.** Vet it before you trust it with your machine: one
+  command shallow-clones any repo and scans it, so you see the unguarded `Bash` agent *before* you
+  run it. → `agentguard owner/repo`
+- **You ship a plugin, or run agents at work.** Gate it in CI or pre-commit (the GitHub Action ships
+  in this repo) so a definition can't regress unnoticed — with a baseline that fails only on *new*
+  problems. → `uses: yingchen-coding/agentguard@v0.1.3`
+
+The rest of this README is the proof that it actually works — starting with what it found in the
+wild.
 
 ## I scanned the official Claude Code plugin marketplace. 85% had no injection guard.
 
