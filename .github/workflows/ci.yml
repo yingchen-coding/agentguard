@@ -9,6 +9,10 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Default-deny: every job gets read-only contents unless it declares more.
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -72,8 +76,6 @@ jobs:
     # wrapper is proven on every commit — install path, arg parsing, and exit codes.
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -106,6 +108,9 @@ jobs:
     # agentguard lints its own example definitions and runs its own supply-chain check — dogfooding.
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write   # upload-sarif writes to code scanning
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
