@@ -7,6 +7,11 @@
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+<p align="center">
+  <img src="assets/hero.svg" width="820"
+       alt="agentguard scanning an innocent-looking 'report-summarizer' agent: it flags a critical injection-to-RCE chain and a destructive action, then a rescan after the two-line fix returns a clean grade-A.">
+</p>
+
 A security scanner for the agent / command / skill definitions behind Claude Code (and any
 markdown-with-frontmatter agent harness). It parses what **tools each agent can use** and finds the
 prompt-injection and capability holes that turn *"summarize this file"* into remote code execution
