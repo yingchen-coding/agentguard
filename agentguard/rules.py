@@ -177,6 +177,13 @@ _DEBUG_CTX = re.compile(
     r"non-?zero|traceback|output|logs?)\b",
     re.IGNORECASE,
 )
+# A data-handling verb right before the stem ("extract scores", "report the grade", "count flags")
+# means the agent is reading/moving existing values, not asserting a new high-stakes one.
+_DATA_OBJECT = re.compile(
+    r"\b(extract|read|report|count|list|collect|parse|load|pull|gather|show|display|tally|"
+    r"aggregate|summari[sz]e)\s+(?:the\s+|a\s+|each\s+|all\s+|its\s+)?$",
+    re.IGNORECASE,
+)
 _SCOPE_BOUND = re.compile(
     r"\b(do not|don'?t|never|only|not for|out of scope|stay within|limited to|"
     r"focus(?:es|ed|ing)? (?:on|solely|exclusively|only)|what not to|"
@@ -466,6 +473,18 @@ def assert_without_verify(d: Definition) -> list[Finding]:
     m = None
     for mm in _ASSERTIVE.finditer(d.body):
         if _NOMINALIZED.search(mm.group(0)):
+            continue
+        # An assertive stem immediately followed by " of " is a noun phrase ("Scores of 3.7/5",
+        # "a grade of B") describing a scale, not the agent scoring/grading something.
+        if d.body[mm.end():mm.end() + 4].lower() == " of ":
+            continue
+        # The stem as the object of a data verb ("extract scores", "report the grade") is the agent
+        # *handling* existing values, not asserting a new high-stakes one.
+        if _DATA_OBJECT.search(d.body[d.body.rfind("\n", 0, mm.start()) + 1:mm.start()]):
+            continue
+        # An assertive verb inside an output-template code fence, a rubric table cell, or a
+        # parenthetical is *describing* a format, not the agent issuing a high-stakes claim.
+        if _in_noise_context(d.body, mm.start()):
             continue
         line_start = d.body.rfind("\n", 0, mm.start()) + 1
         if d.body[line_start:mm.start()].lstrip().startswith("#"):
