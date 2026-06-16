@@ -39,6 +39,8 @@ jobs:
           fi
           python3 tools/corpus_audit.py "${args[@]}"
           cp build/corpus-audit/state.json .agentguard-corpus-state.json
+      - name: Verify the audit against its schema before human review
+        run: python3 tools/validate_audit.py build/corpus-audit/audit.json
       - uses: actions/upload-artifact@v7
         with:
           name: agentguard-corpus-audit

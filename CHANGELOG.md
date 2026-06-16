@@ -5,6 +5,11 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- The scheduled agent-factory now **verifies its own output** before handing it to human review:
+  `tools/validate_audit.py` (zero-dependency) checks the corpus audit against its committed schema,
+  and `agent-factory.yml` runs it after the scan. Surfaced by viewing the factory through the
+  six-block Loop Engineering lens — the loop had a trigger, memory, and handback but no independent
+  verify step. +4 tests.
 - AL204 precision: no longer fires on assertive stems that are merely *described*, not performed —
   inside an output-template code fence (`**Score:** {X/10}`), as a noun phrase (`Scores of 3.7/5`),
   or as the object of a data verb (`extract scores from ...`). Found by validating against real
