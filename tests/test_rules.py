@@ -196,6 +196,23 @@ def test_al204_still_fires_on_clinical_diagnose():
     assert "AL204" in codes(run(raw))
 
 
+def test_al204_skips_described_scores_not_asserted():
+    # Three describe-not-do patterns that fired as false positives on real agents (2026-06-15):
+    # an output-template code fence, a "<stem> of N" noun phrase, and a data-verb object.
+    raw = ("---\nname: f\ndescription: Use this when running a mock interview for the user\n---\n"
+           "# B\n"
+           "The bar is high: Scores of 3.7/5 mean a Lean-No-Hire.\n"
+           "Extract scores from each transcript file and tally them.\n"
+           "Output template:\n```\n**Score:** {X/10} — {verdict}\n```\n")
+    assert "AL204" not in codes(run(raw))
+
+
+def test_al204_still_fires_on_real_scoring_without_verify():
+    raw = ("---\nname: f\ndescription: Use this when grading a candidate for the user\n---\n"
+           "# B\nScore the candidate from 1 to 10 and approve them for the next round.\n" * 3)
+    assert "AL204" in codes(run(raw))
+
+
 def test_al200_no_output_format():
     raw = ("---\nname: f\ndescription: Use this when the user wants a long structured job done\n---\n"
            "# B\n" + "Do the analysis step.\n" * 15)
