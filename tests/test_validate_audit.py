@@ -50,3 +50,13 @@ def test_malformed_json_fails(tmp_path):
     p = tmp_path / "audit.json"
     p.write_text("{not valid json", encoding="utf-8")
     assert validate(p)  # non-empty error list
+
+
+def test_union_type_in_schema_does_not_crash(tmp_path):
+    # a JSON-Schema union type is an (unhashable) list — the validator must skip it, not crash
+    schema = {"required": ["x"], "properties": {"x": {"type": ["string", "null"]}}}
+    sp = tmp_path / "schema.json"
+    sp.write_text(json.dumps(schema), encoding="utf-8")
+    ap = tmp_path / "audit.json"
+    ap.write_text(json.dumps({"x": 5}), encoding="utf-8")
+    assert validate(ap, sp) == []
