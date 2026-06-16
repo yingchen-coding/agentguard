@@ -5,6 +5,10 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- AL204 precision: no longer fires on assertive stems that are merely *described*, not performed —
+  inside an output-template code fence (`**Score:** {X/10}`), as a noun phrase (`Scores of 3.7/5`),
+  or as the object of a data verb (`extract scores from ...`). Found by validating against real
+  agent definitions; benchmark recall/precision held, with regression tests.
 - Added a maintained agent-factory layer: co-located maintainer and corpus-analyst skills, a
   versioned corpus-audit schema, parallel real-repository scanning, stable deduplication,
   new/unchanged/resolved state comparison, repair-patch generation, and a human-gated issue
