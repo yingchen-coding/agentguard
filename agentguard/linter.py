@@ -151,6 +151,29 @@ def _walk_md(root: Path) -> Iterator[Path]:
                 yield Path(dirpath) / fn
 
 
+def discover_agent_roots(search_roots: list[Path]) -> list[Path]:
+    """Find local agent-definition roots — every `.claude` directory under the given roots, plus
+    the user's `~/.claude`. Powers `--discover`, so agentguard can scan every agent you own without
+    being handed paths. Skips vendor/build/backup dirs; never descends into a found `.claude`."""
+    roots: set[Path] = set()
+    home_claude = Path.home() / ".claude"
+    if home_claude.is_dir():
+        roots.add(home_claude.resolve())
+    for base in search_roots:
+        base = Path(base)
+        if not base.is_dir():
+            continue
+        for dirpath, dirnames, _ in os.walk(base):
+            dirnames[:] = [
+                d for d in dirnames
+                if d not in _SKIP_WALK_DIRS and "backup" not in d.lower()
+            ]
+            if ".claude" in dirnames:
+                roots.add((Path(dirpath) / ".claude").resolve())
+                dirnames.remove(".claude")  # don't walk into it; it's a scan root itself
+    return sorted(roots)
+
+
 def _has_frontmatter(path: Path) -> bool:
     try:
         with path.open("r", encoding="utf-8-sig", errors="replace") as fh:  # utf-8-sig strips BOM

@@ -5,6 +5,9 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- **`--discover`** auto-finds every agent definition set on the machine — each `.claude` directory
+  under the given roots (default `~/Documents`) plus `~/.claude` — and scans them all, so you can
+  audit every agent you own without listing paths. Skips vendor/build/backup directories.
 - The scheduled agent-factory now **verifies its own output** before handing it to human review:
   `tools/validate_audit.py` (zero-dependency) checks the corpus audit against its committed schema,
   and `agent-factory.yml` runs it after the scan. Surfaced by viewing the factory through the

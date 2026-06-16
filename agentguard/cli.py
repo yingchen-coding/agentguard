@@ -28,6 +28,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("paths", nargs="*", default=["."],
                    help="files or directories to lint (default: current directory)")
+    p.add_argument("--discover", action="store_true",
+                   help="auto-find every agent definition set (.claude dirs + ~/.claude) under the "
+                        "given roots (default: ~/Documents) and scan them all")
     p.add_argument("-f", "--format", choices=["human", "json", "sarif"], default="human",
                    help="output format (default: human)")
     p.add_argument("--fail-at", choices=list(_SEV_NAMES), default=None,
@@ -83,6 +86,23 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.list_rules:
         return _list_rules()
+
+    # Auto-discovery: find every agent definition set and scan them all, no paths needed.
+    if args.discover:
+        from .linter import discover_agent_roots
+        if args.paths != ["."]:
+            search_roots = [Path(p) for p in args.paths]
+        else:
+            search_roots = [Path.home() / "Documents"]
+        roots = discover_agent_roots(search_roots)
+        if not roots:
+            print(f"agentguard: no agent definitions (.claude dirs) found under "
+                  f"{', '.join(str(r) for r in search_roots)}", file=sys.stderr)
+            return 2
+        print(f"agentguard: discovered {len(roots)} agent location(s):", file=sys.stderr)
+        for r in roots:
+            print(f"  {r}", file=sys.stderr)
+        return _run(args, roots)
 
     # Remote scan: a single `owner/repo` or git URL is cloned to a temp dir ("vet before install").
     remote_cleanup = None
