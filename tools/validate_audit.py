@@ -49,11 +49,14 @@ def validate(audit_path: Path, schema_path: Path = SCHEMA) -> list[str]:
         if key not in data
     ]
     for key, spec in (schema.get("properties") or {}).items():
-        if key in data and isinstance(spec, dict) and "type" in spec:
-            expected = _JSON_TYPES.get(spec["type"])
+        # Only check single string types; a union like ["string","null"] (unhashable list) or a
+        # missing type is left to a fuller validator rather than crashing here.
+        type_name = spec.get("type") if isinstance(spec, dict) else None
+        if key in data and isinstance(type_name, str):
+            expected = _JSON_TYPES.get(type_name)
             if expected is not None and not isinstance(data[key], expected):
                 got = type(data[key]).__name__
-                errors.append(f"key {key!r} should be {spec['type']}, got {got}")
+                errors.append(f"key {key!r} should be {type_name}, got {got}")
     return errors
 
 

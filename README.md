@@ -271,6 +271,9 @@ The scanner is one layer. The repository also ships the maintenance system aroun
   definitions by stable fingerprint, reports new/unchanged/resolved findings, and writes reviewable
   repair patches for safe auto-fixes. It records source revisions and classifies ambiguity,
   retrieval failure, execution risk, and aggregate staleness instead of hiding them in prose.
+- **Verify before review:** `tools/validate_audit.py` checks each corpus audit against its committed
+  schema in the scheduled workflow, so a malformed or truncated audit fails the run instead of
+  reaching the human review queue.
 - **Drift control:** `tools/verify_contracts.py` ties executable rules to tests, docs, framework
   mappings, release pins, freshness-bounded evidence snapshots, schemas, and skills.
 - **Every PR gets a review packet:** `tools/change_review.py` derives security, trust-boundary,
