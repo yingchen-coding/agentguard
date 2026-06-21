@@ -95,6 +95,18 @@ def test_unreadable_definition_fails_closed(tmp_path, monkeypatch):
     assert found == {"AL000"}
 
 
+def test_empty_file_reports_only_undiscoverable(tmp_path):
+    # an empty / whitespace-only file is not an agent — only AL001 (undiscoverable), not security
+    # findings like AL302 tool-inheritance that presuppose a real definition.
+    p = tmp_path / "agents" / "empty.md"
+    p.parent.mkdir(parents=True)
+    p.write_text("   \n\n")
+    d = parse_definition(p)
+    assert d.is_empty and not d.read_error
+    found = {x.rule for x in Linter().lint_definition(d)}
+    assert found == {"AL001"}
+
+
 # ---- real attack fixtures ----
 
 @pytest.mark.parametrize("fixture,expected", [
