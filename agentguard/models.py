@@ -87,6 +87,12 @@ class Definition:
 
     # ---- convenience views (computed once) ----
     @property
+    def is_empty(self) -> bool:
+        """No content at all — an empty / whitespace-only file is not a usable definition, so
+        rules that presuppose a real agent (e.g. tool-inheritance) shouldn't fire on it."""
+        return not self.raw.strip()
+
+    @property
     def body_lower(self) -> str:
         return self.body.lower()
 

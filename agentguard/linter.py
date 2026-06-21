@@ -80,6 +80,11 @@ class Linter:
         for code, fn in all_rules():
             if definition.read_error and code != "AL000":
                 continue
+            # An empty (readable) file isn't an agent — report only that it can't be discovered
+            # (AL001), not security findings (e.g. AL302 tool-inheritance) that presuppose a real
+            # definition. Scoped to readable files so the read-error path (AL000) stays untouched.
+            if not definition.read_error and definition.is_empty and code != "AL001":
+                continue
             if not self._active(code, definition):
                 continue
             try:
