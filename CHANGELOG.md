@@ -5,6 +5,10 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- **`--score` now names the files dragging the grade down.** A non-A grade lists its top density
+  contributors (`↳ path — N major, M minor`), so the number is actionable instead of opaque —
+  you see exactly which definitions to clean up. New `top_density_contributors()` helper.
+
 - **`--score` now reflects security posture, not codebase size (bug).** The grade summed every
   finding across all files, so the score scaled with N: a 40-file benign agent set (0 criticals,
   ~50 scaffolding findings) floored to F while a tiny genuinely-dangerous one scored the same. The

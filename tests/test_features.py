@@ -194,6 +194,30 @@ def test_grade_two_criticals_is_F():
     assert grade(_synthetic_report(50, critical=2))[0] == "F"
 
 
+def test_top_density_contributors_ranks_and_skips_clean(tmp_path):
+    # files with findings are ranked by 7*major+2*minor desc; clean files are skipped.
+    from agentguard.linter import FileResult, LintReport
+    from agentguard.models import Finding, Severity
+    from agentguard.report import top_density_contributors
+
+    def fr(name, major, minor):
+        f = ([Finding("AL000", Severity.MAJOR, "m", "fix", 0)] * major
+             + [Finding("AL000", Severity.MINOR, "n", "fix", 0)] * minor)
+        return FileResult(path=Path(name), definition=None, findings=f)
+
+    report = LintReport(results=[fr("a.md", 0, 0), fr("b.md", 2, 0), fr("c.md", 0, 3)])
+    top = top_density_contributors(report, limit=5)
+    assert [p.name for p, *_ in top] == ["b.md", "c.md"]   # 14 > 6; clean a.md skipped
+    assert top[0] == (Path("b.md"), 14, 2, 0)
+
+
+def test_render_grade_names_dragging_files(tmp_path):
+    # a non-A grade lists the files dragging the density score, so the number is actionable.
+    from agentguard.report import render_grade
+    rendered = render_grade(_synthetic_report(6, major=4, minor=2), color=False)
+    assert "↳" in rendered and "major" in rendered
+
+
 def test_render_grade_color_clean_does_not_crash(tmp_path):
     from agentguard.report import render_grade
     p = tmp_path / "agents" / "ok.md"
