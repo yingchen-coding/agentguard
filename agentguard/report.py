@@ -76,14 +76,33 @@ def render_human(report: LintReport, color: bool = True, root: Path | None = Non
     return "\n".join(out)
 
 
+_DENSITY_FLOOR = 5  # treat scans smaller than this as this size, so a tiny scan can't look "dense"
+
+
+def _letter(score: int) -> str:
+    return ("A" if score >= 90 else "B" if score >= 80 else "C" if score >= 70
+            else "D" if score >= 60 else "F")
+
+
 def grade(report: LintReport) -> tuple[str, int]:
-    """A 0–100 security score and letter grade for the whole scan. Severity-dominant: one critical
-    caps you at D, two at F; majors/minors chip away. Clean = A (100)."""
+    """A 0–100 security score and letter grade that reflects security *posture*, independent of how
+    many files were scanned. Two orthogonal axes, combined by the worse (`min`) of the two:
+
+      • danger ceiling — criticals are a presence/worst-case signal, so they're counted, not summed
+        per-file: 0 → can still reach 100, 1 → caps at D (66), ≥2 → F (32). A big benign codebase
+        never manufactures a critical, so this axis doesn't scale with size.
+      • sloppiness density — majors/minors are a rate signal: their weight averaged *per file*, so a
+        sprawling-but-clean repo isn't punished for size the way a raw sum punished it.
+
+    This preserves the original intent (one critical = serious; clean = A) while fixing the bug
+    where a summed score scaled with codebase size — flooring a 40-file benign scan to F while a
+    tiny genuinely-dangerous one scored the same. Now those separate."""
     c = report.total_counts
-    score = max(0, min(100, 100 - 34 * c["critical"] - 7 * c["major"] - 2 * c["minor"]))
-    letter = ("A" if score >= 90 else "B" if score >= 80 else "C" if score >= 70
-              else "D" if score >= 60 else "F")
-    return letter, score
+    n = max(len(report.results), _DENSITY_FLOOR)
+    ceiling = 100 - 34 * min(c["critical"], 2)            # 0→100, 1→66 (D), ≥2→32 (F)
+    density = (7 * c["major"] + 2 * c["minor"]) / n       # per-file major/minor weight
+    score = max(0, min(ceiling, round(100 - density)))
+    return _letter(score), score
 
 
 def render_grade(report: LintReport, color: bool = True) -> str:
