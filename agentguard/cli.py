@@ -30,7 +30,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="files or directories to lint (default: current directory)")
     p.add_argument("--discover", action="store_true",
                    help="auto-find every agent definition set (.claude dirs + ~/.claude) under the "
-                        "given roots (default: ~/Documents) and scan them all")
+                        "given roots (default: ~/Documents) and scan them all. Machine-installed "
+                        "third-party plugins (.claude/plugins/) are skipped like node_modules; "
+                        "point agentguard at a plugin path directly to audit it.")
     p.add_argument("-f", "--format", choices=["human", "json", "sarif"], default="human",
                    help="output format (default: human)")
     p.add_argument("--fail-at", choices=list(_SEV_NAMES), default=None,

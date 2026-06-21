@@ -146,6 +146,13 @@ def discover(paths: list[Path]) -> list[Path]:
 def _walk_md(root: Path) -> Iterator[Path]:
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in _SKIP_WALK_DIRS]
+        # `.claude/plugins/` holds machine-installed third-party plugins — vendored code the user
+        # didn't author, the node_modules of Claude agents. Skip it the way we skip node_modules so
+        # counts reflect the user's own definitions. Pointing agentguard *at* a plugin path still
+        # scans it (the prune only fires while walking past a `.claude` dir), so a deliberate
+        # supply-chain audit is unaffected.
+        if os.path.basename(dirpath) == ".claude" and "plugins" in dirnames:
+            dirnames.remove("plugins")
         for fn in filenames:
             if fn.lower().endswith(".md"):
                 yield Path(dirpath) / fn
