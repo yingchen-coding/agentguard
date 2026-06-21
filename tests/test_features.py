@@ -165,6 +165,35 @@ def test_grade_critical_caps_low():
     assert letter in ("D", "F") and score < 70
 
 
+def _synthetic_report(n_files, critical=0, major=0, minor=0):
+    """A LintReport with the given file count and severity totals — for grading-math tests that
+    shouldn't depend on tripping real rules. grade() only reads total_counts and len(results)."""
+    from agentguard.linter import FileResult, LintReport
+    from agentguard.models import Finding, Severity
+    findings = ([Finding("AL000", Severity.CRITICAL, "c", "fix", 0) for _ in range(critical)]
+                + [Finding("AL000", Severity.MAJOR, "m", "fix", 0) for _ in range(major)]
+                + [Finding("AL000", Severity.MINOR, "n", "fix", 0) for _ in range(minor)])
+    results = [FileResult(path=Path(f"f{i}.md"), definition=None, findings=findings if i == 0 else [])
+               for i in range(n_files)]
+    return LintReport(results=results)
+
+
+def test_grade_is_size_independent():
+    # the bug this fixes: a big benign scan must NOT grade worse than a tiny dangerous one.
+    from agentguard.report import grade
+    benign_sprawl = grade(_synthetic_report(40, critical=0, major=8, minor=130))  # lots, all benign
+    tiny_dangerous = grade(_synthetic_report(2, critical=1))                       # one real critical
+    assert benign_sprawl[1] > tiny_dangerous[1]          # posture, not size, drives the grade
+    assert benign_sprawl[0] in ("A", "B", "C")           # benign sprawl is no longer an F
+    assert tiny_dangerous[0] == "D"                       # one critical caps at D, intent preserved
+
+
+def test_grade_two_criticals_is_F():
+    from agentguard.report import grade
+    assert grade(_synthetic_report(3, critical=2))[0] == "F"  # ceiling drops to 32 regardless of N
+    assert grade(_synthetic_report(50, critical=2))[0] == "F"
+
+
 def test_render_grade_color_clean_does_not_crash(tmp_path):
     from agentguard.report import render_grade
     p = tmp_path / "agents" / "ok.md"

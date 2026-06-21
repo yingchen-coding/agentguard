@@ -5,6 +5,15 @@ All notable changes are documented here. Format loosely follows
 
 ## Unreleased
 
+- **`--score` now reflects security posture, not codebase size (bug).** The grade summed every
+  finding across all files, so the score scaled with N: a 40-file benign agent set (0 criticals,
+  ~50 scaffolding findings) floored to F while a tiny genuinely-dangerous one scored the same. The
+  two questions a security grade answers need different aggregators — "is anything dangerous?" is a
+  count-based **ceiling** (criticals: 0→100, 1→D, ≥2→F, size-independent), "is it systemically
+  sloppy?" is a per-file **density** (majors/minors averaged over file count). The grade is now the
+  worse of the two. A benign sprawl that scored F now scores A; a 2-file plugin with one real
+  injection critical scores D — they finally separate. Original intent (one critical = serious,
+  clean = A) preserved.
 - **`--discover`** auto-finds every agent definition set on the machine — each `.claude` directory
   under the given roots (default `~/Documents`) plus `~/.claude` — and scans them all, so you can
   audit every agent you own without listing paths. Skips vendor/build/backup directories.
