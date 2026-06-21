@@ -105,7 +105,24 @@ def grade(report: LintReport) -> tuple[str, int]:
     return _letter(score), score
 
 
-def render_grade(report: LintReport, color: bool = True) -> str:
+def top_density_contributors(
+    report: LintReport, limit: int = 5
+) -> list[tuple[Path, int, int, int]]:
+    """Files dragging the density score down, worst first. Returns up to `limit` tuples of
+    (path, weight, major, minor) where weight = 7*major + 2*minor, skipping files whose weight is 0.
+    Sorted by weight desc, then path for stable ordering."""
+    contributors: list[tuple[Path, int, int, int]] = []
+    for result in report.results:
+        major = result.counts["major"]
+        minor = result.counts["minor"]
+        weight = 7 * major + 2 * minor
+        if weight:
+            contributors.append((result.path, weight, major, minor))
+    contributors.sort(key=lambda item: (-item[1], item[0]))
+    return contributors[:max(limit, 0)]
+
+
+def render_grade(report: LintReport, color: bool = True, root: Path | None = None) -> str:
     c = _COLOR if color else _NOCOLOR
     letter, score = grade(report)
     band = "good" if letter in "AB" else "critical" if letter in "DF" else "major"
@@ -115,11 +132,21 @@ def render_grade(report: LintReport, color: bool = True) -> str:
     if report.project_findings:
         p = len(report.project_findings)
         scope += f", {p} project finding{'s' if p != 1 else ''}"
-    return (
+    lines = [
         f"{c['bold']}Security grade: {c[band]}{letter}{c['reset']}{c['bold']} ({score}/100)"
         f"{c['reset']} — {tc['critical']} critical, {tc['major']} major, "
         f"{tc['minor']} minor across {scope}"
-    )
+    ]
+    # When majors/minors pulled the score (i.e. not a clean A), name the files doing the pulling so
+    # the grade is actionable rather than a bare number.
+    if score < 100:
+        for path, _weight, major, minor in top_density_contributors(report, limit=3):
+            try:
+                shown = path.relative_to(root) if root else path
+            except ValueError:
+                shown = path
+            lines.append(f"  {c['dim']}↳ {shown} — {major} major, {minor} minor{c['reset']}")
+    return "\n".join(lines)
 
 
 def render_json(report: LintReport, root: Path | None = None) -> str:

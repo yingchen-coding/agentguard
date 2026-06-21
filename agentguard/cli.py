@@ -219,7 +219,7 @@ def _run(args: argparse.Namespace, paths: list[Path]) -> int:
 
     if args.score and args.format == "human":
         from .report import render_grade
-        print("\n" + render_grade(report, color=color))
+        print("\n" + render_grade(report, color=color, root=root))
 
     return report.exit_code(_SEV_NAMES[fail_at])
 
