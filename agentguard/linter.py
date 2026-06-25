@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .models import Definition, Finding, Severity, parse_definition
+from .project import _ignored, _load_ignore
 from .rules import all_rules
 
 # Files we treat as agent/command/skill definitions.
@@ -125,11 +126,18 @@ def discover(paths: list[Path]) -> list[Path]:
             continue
         if not p.is_dir():
             continue
+        ignore = _load_ignore(p)
         # Walk once, pruning heavy dirs during traversal (not after).
         mds = list(_walk_md(p))
         structured = any((p / d).is_dir() for d in _DEF_DIRS) or \
             any(part.lower() in _DEF_DIRS for md in mds for part in md.parts)
         for md in mds:
+            try:
+                rel = str(md.relative_to(p))
+            except ValueError:
+                rel = str(md)
+            if _ignored(rel, ignore):
+                continue
             if md.name.lower() in _SKIP_NAMES:
                 continue
             parts_lower = [part.lower() for part in md.parts]
