@@ -28,6 +28,8 @@ def test_source_distribution_includes_factory_dependencies():
     manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")
     for directory in ("corpus", "eval", "evidence", "schemas", "skills", "tools"):
         assert f"recursive-include {directory} " in manifest
+    assert "recursive-include .claude-plugin *.json" in manifest
+    assert "recursive-include plugins/agent-armor *" in manifest
     assert "recursive-include tests/fixtures *.md" in manifest
     assert "include action.yml" in manifest
     assert "recursive-include .github/workflows *.yml" in manifest

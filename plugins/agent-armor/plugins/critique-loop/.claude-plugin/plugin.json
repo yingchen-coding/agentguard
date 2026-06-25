@@ -1,0 +1,17 @@
+{
+  "name": "critique-loop",
+  "description": "Runs the adversarial critic in a loop and applies the fixes, hardening an agent/skill/command definition until it stops finding real Critical or Major issues. Works on a single file, a directory of definitions, or a whole project.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Ying Chen"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/yingchen-coding/agent-armor",
+  "keywords": [
+    "claude-code",
+    "agents",
+    "agent-reliability",
+    "prompt-engineering",
+    "red-team"
+  ]
+}
