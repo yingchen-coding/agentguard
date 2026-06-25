@@ -1,0 +1,17 @@
+{
+  "name": "adversarial-critic",
+  "description": "Red-teams an agent/skill/command definition across 10 failure dimensions \u2014 coverage gaps, instruction ambiguity, internal contradictions, safety holes, output-format weaknesses, missing examples, failure-mode handling, adversarial-input resistance, specificity-vs-generality balance, and safety-caution completeness.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Ying Chen"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/yingchen-coding/agent-armor",
+  "keywords": [
+    "claude-code",
+    "agents",
+    "agent-reliability",
+    "prompt-engineering",
+    "red-team"
+  ]
+}

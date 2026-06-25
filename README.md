@@ -370,12 +370,23 @@ Every rule is a pure function `(Definition) -> list[Finding]`, calibrated agains
 Adding a rule requires positive, near-miss, benchmark, adversarial, contract, and real-corpus
 evidence where applicable.
 
-## Pairs with `adversarial-critic`
+## Optional assisted hardening plugins
 
-agentguard is the deterministic layer — instant, free, every commit. For the judgment-heavy review
-(internal contradictions, subtle coverage gaps), pair it with
-[`adversarial-critic`](https://github.com/yingchen-coding/agent-armor), an LLM agent that red-teams a
-definition across 10 dimensions. Scan in CI; critique before you ship something big.
+agentguard is the deterministic layer — instant, free, every commit. For judgment-heavy review
+(internal contradictions, subtle coverage gaps, repair loops), this repo also ships an optional
+Claude Code plugin pack under [`plugins/agent-armor`](plugins/agent-armor):
+
+- `adversarial-critic`: read-only red-team review of agent / command / skill definitions.
+- `critique-loop`: runs the critic, applies fixes, rereads, and repeats until major gaps are gone.
+- `agent-orchestrator`: a bounded, least-privilege parallel sub-agent coordinator.
+
+Use the scanner in CI; use the plugins before shipping a large or safety-sensitive definition.
+
+```bash
+/plugin marketplace add yingchen-coding/agentguard
+/plugin install adversarial-critic@agent-armor
+/plugin install critique-loop@agent-armor
+```
 
 ## License
 

@@ -3,6 +3,8 @@
 tests/fixtures
 tests/test_rules.py
 tests/test_project.py
+# Attack fixtures intentionally contain vulnerable definitions for demos and docs.
+examples/attacks
 # The accuracy benchmark embeds vulnerable/secret definitions as labeled test data.
 eval/benchmark.py
 # The rule/pattern library defines the malware & secret signatures as regex literals,

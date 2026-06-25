@@ -1,0 +1,17 @@
+{
+  "name": "agent-orchestrator",
+  "description": "Decompose a large task into independent subtasks, fan them out to parallel background sub-agents, consolidate the results, and redistribute follow-up work until the whole task is done. Divide-and-conquer for Claude Code.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Ying Chen"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/yingchen-coding/agent-armor",
+  "keywords": [
+    "claude-code",
+    "agents",
+    "agent-reliability",
+    "prompt-engineering",
+    "red-team"
+  ]
+}

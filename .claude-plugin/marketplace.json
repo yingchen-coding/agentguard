@@ -1,0 +1,38 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agent-armor",
+  "description": "Deterministic agent-definition security scanning plus optional assisted hardening plugins.",
+  "owner": {
+    "name": "Ying Chen",
+    "url": "https://github.com/yingchen-coding"
+  },
+  "plugins": [
+    {
+      "name": "adversarial-critic",
+      "description": "Red-teams an agent/skill/command definition across 10 failure dimensions before it ships.",
+      "author": {
+        "name": "Ying Chen"
+      },
+      "category": "development",
+      "source": "./plugins/agent-armor/plugins/adversarial-critic"
+    },
+    {
+      "name": "critique-loop",
+      "description": "Runs adversarial-critic in a loop and applies fixes until a definition has no real Critical or Major issues.",
+      "author": {
+        "name": "Ying Chen"
+      },
+      "category": "development",
+      "source": "./plugins/agent-armor/plugins/critique-loop"
+    },
+    {
+      "name": "agent-orchestrator",
+      "description": "Decompose independent subtasks, fan them out to bounded parallel sub-agents, and consolidate verified results.",
+      "author": {
+        "name": "Ying Chen"
+      },
+      "category": "productivity",
+      "source": "./plugins/agent-armor/plugins/agent-orchestrator"
+    }
+  ]
+}
