@@ -19,6 +19,12 @@ prompt-injection and capability holes that turn *"summarize this file"* into rem
 data exfiltration, and returns specific, severity-ranked findings — each mapped to OWASP/MITRE and
 paired with the one-line fix. Deterministic, zero-dependency, no API key, no LLM call.
 
+### Star this if
+
+- You are building Claude Code agents, slash commands, or skills and want a CI gate for prompt-injection risk.
+- You install community plugins and want to audit them before they touch your machine.
+- You care about deterministic security checks that run locally without sending agent definitions to an LLM.
+
 ### What you'd use it for
 
 - **You write agents, commands, or skills.** Lint them like code: catch a missing injection guard,
