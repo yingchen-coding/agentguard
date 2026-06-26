@@ -1,6 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+python - <<'PY'
+import subprocess
+
+allowed = "Ying Chen <yingchen.for.upload@gmail.com>"
+blocked_message_markers = [
+    "co-authored-by: claude",
+    "co-authored-by: codex",
+    "co-authored-by: anthropic",
+    "co-authored-by: openai",
+    "noreply@anthropic.com",
+    "noreply@openai.com",
+]
+
+raw = subprocess.check_output(
+    ["git", "log", "--all", "--format=%H%x00%an <%ae>%x00%cn <%ce>%x00%B%x1e"],
+    text=True,
+)
+findings: list[str] = []
+for record in raw.strip("\x1e\n").split("\x1e"):
+    if not record.strip():
+        continue
+    commit, author, committer, message = record.split("\x00", 3)
+    short = commit[:12]
+    if author != allowed:
+        findings.append(f"{short}: author is {author}, expected {allowed}")
+    if committer != allowed:
+        findings.append(f"{short}: committer is {committer}, expected {allowed}")
+    lowered = message.lower()
+    if any(marker in lowered for marker in blocked_message_markers):
+        findings.append(f"{short}: commit message contains blocked AI co-author marker")
+
+if findings:
+    print("\n".join(findings))
+    raise SystemExit("git attribution scan failed")
+PY
+
 python -m pytest -q
 python -m ruff check .
 python -m mypy agentguard
