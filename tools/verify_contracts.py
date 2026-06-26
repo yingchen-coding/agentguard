@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT))
 from agentguard.frameworks import REFS  # noqa: E402
 from agentguard.project import PROJECT_TITLES  # noqa: E402
 from agentguard.rules import TITLES, all_rules  # noqa: E402
+from agentguard.workflow import WORKFLOW_TITLES  # noqa: E402
 
 VERSION_RE = re.compile(r'^version = "([^"]+)"$', re.MULTILINE)
 RULE_RE = re.compile(r"\bAL\d{3}\b")
@@ -56,7 +57,7 @@ def verify() -> list[str]:
     )
 
     registered = {code for code, _ in all_rules()}
-    known = registered | set(PROJECT_TITLES)
+    known = registered | set(PROJECT_TITLES) | set(WORKFLOW_TITLES)
     documented = set(RULE_RE.findall(rules_doc))
     missing_docs = known - documented
     unknown_docs = documented - known

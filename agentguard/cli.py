@@ -58,6 +58,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-config", action="store_true",
                    help="ignore any [tool.agentguard] / .agentguard.toml config")
     p.add_argument("--list-rules", action="store_true", help="print the rule catalog and exit")
+    p.add_argument("--workflow-scan", choices=["command", "prompt", "git-log", "text"],
+                   help="scan raw workflow text instead of agent definitions")
+    p.add_argument("--text", help="text to scan with --workflow-scan")
+    p.add_argument("--stdin", action="store_true",
+                   help="read workflow text from stdin for --workflow-scan")
     p.add_argument("--version", action="version", version=f"agentguard {__version__}")
     return p
 
@@ -66,6 +71,7 @@ def _list_rules() -> int:
     from .frameworks import short_refs
     from .project import PROJECT_TITLES
     from .rules import TITLES
+    from .workflow import WORKFLOW_TITLES
 
     def line(code: str, title: str) -> str:
         ref = short_refs(code)
@@ -77,17 +83,95 @@ def _list_rules() -> int:
     print("\n  -- AL5xx: repo-level, run with --publish-check --")
     for code, title in PROJECT_TITLES.items():
         print(line(code, title))
-    total = len(all_rules()) + len(PROJECT_TITLES)
+    print("\n  -- AL6xx: workflow text, run with --workflow-scan --")
+    for code, title in WORKFLOW_TITLES.items():
+        print(line(code, title))
+    total = len(all_rules()) + len(PROJECT_TITLES) + len(WORKFLOW_TITLES)
     print(f"\n{total} rules, mapped to OWASP LLM Top 10 (2025) & MITRE ATLAS. Disable inline with "
           f"`<!-- agentguard-disable AL202 -->`\n(or `# agentguard-allow AL510` in code), or "
           f"globally with --ignore. Full reference: docs/rules.md, docs/threat-mapping.md.")
     return 0
 
 
+def _run_workflow(args: argparse.Namespace) -> int:
+    import json
+
+    from .workflow import scan_workflow_text
+
+    if args.stdin:
+        text = sys.stdin.read()
+    elif args.text is not None:
+        text = args.text
+    elif args.paths and args.paths != ["."]:
+        text = "\n".join(args.paths)
+    else:
+        print("agentguard: --workflow-scan requires --text, --stdin, or text arguments",
+              file=sys.stderr)
+        return 2
+
+    cfg_fail = None
+    if not args.no_config:
+        from .config import load_config
+        cfg = load_config(Path("."))
+        cfg_fail = cfg.get("fail_at")
+    fail_at = args.fail_at or (cfg_fail if isinstance(cfg_fail, str) else "major")
+    if fail_at not in _SEV_NAMES:
+        print(f"agentguard: invalid fail-at: {fail_at}", file=sys.stderr)
+        return 2
+
+    select = _parse_codes(args.select)
+    ignore = _parse_codes(args.ignore) or set()
+    findings = scan_workflow_text(text, args.workflow_scan)
+    if select is not None:
+        findings = [f for f in findings if f.rule in select]
+    findings = [f for f in findings if f.rule not in ignore]
+
+    if args.format == "json":
+        output = json.dumps({
+            "version": 1,
+            "surface": args.workflow_scan,
+            "summary": {"findings": len(findings)},
+            "findings": [f.to_dict() for f in findings],
+        }, indent=2)
+    elif args.format == "sarif":
+        from .linter import FileResult, LintReport
+        from .models import Definition
+        from .report import render_sarif
+
+        pseudo = Definition(path=Path(f"workflow:{args.workflow_scan}"), raw=text,
+                            kind="workflow")
+        output = render_sarif(LintReport(results=[
+            FileResult(path=pseudo.path, definition=pseudo, findings=findings)
+        ]))
+    else:
+        if findings:
+            lines = [f"workflow:{args.workflow_scan}"]
+            for f in findings:
+                loc = f"{f.line}:{f.column}" if f.line else "-"
+                lines.append(f"  {f.severity.label:<8} {loc:>7}  {f.rule}  {f.message}")
+                lines.append(f"            ↳ fix: {f.fix}")
+            output = "\n".join(lines)
+        else:
+            output = f"agentguard: workflow:{args.workflow_scan} clean"
+
+    if args.output:
+        Path(args.output).write_text(output + "\n", encoding="utf-8")
+        print(f"agentguard: wrote {args.format} workflow report to {args.output}",
+              file=sys.stderr)
+    else:
+        print(output)
+
+    worst = max((f.severity for f in findings), default=None)
+    threshold = _SEV_NAMES[fail_at]
+    return 1 if worst is not None and worst >= threshold else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.list_rules:
         return _list_rules()
+    if args.workflow_scan:
+        return _run_workflow(args)
 
     # Auto-discovery: find every agent definition set and scan them all, no paths needed.
     if args.discover:

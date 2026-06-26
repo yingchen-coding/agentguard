@@ -7,6 +7,7 @@ import pytest
 
 from agentguard.linter import Linter, discover
 from agentguard.models import Definition, Severity, parse_definition
+from agentguard.workflow import scan_workflow_text
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -31,6 +32,29 @@ def parse_definition_from_text(raw: str, kind: str = "agent") -> Definition:
 
 def codes(findings):
     return {f.rule for f in findings}
+
+
+def test_workflow_scan_completion_and_ci_prompt():
+    found = scan_workflow_text("is CI green and done?", "prompt")
+    assert {"AL602", "AL604"} <= codes(found)
+
+
+def test_workflow_scan_git_log_ai_attribution():
+    found = scan_workflow_text("Claude <noreply@example.com>\nCo-Authored-By: Claude", "git-log")
+    assert "AL601" in codes(found)
+
+
+def test_workflow_scan_destructive_memory_command():
+    found = scan_workflow_text("unlink /tmp/x /Users/me/Documents/marvin/state/current.md",
+                               "command")
+    assert "AL600" in codes(found)
+    assert next(f for f in found if f.rule == "AL600").severity == Severity.CRITICAL
+
+
+def test_workflow_scan_recommendation_money_and_launch():
+    text = "recommend a buy after portfolio valuation, then launch for stars"
+    found = scan_workflow_text(text, "prompt")
+    assert {"AL603", "AL605", "AL606"} <= codes(found)
 
 
 def run(raw, kind="agent", **kw):

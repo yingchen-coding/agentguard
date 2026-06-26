@@ -9,6 +9,7 @@ from .linter import LintReport
 from .models import Finding, Severity
 from .project import PROJECT_TITLES
 from .rules import TITLES
+from .workflow import WORKFLOW_TITLES
 
 # ANSI — disabled automatically when stdout isn't a tty (handled in cli).
 _COLOR = {
@@ -215,7 +216,9 @@ def render_sarif(report: LintReport, root: Path | None = None) -> str:
         for f in r.findings:
             rules_seen.setdefault(f.rule, {
                 "id": f.rule,
-                "shortDescription": {"text": TITLES.get(f.rule, f.rule)},
+                "shortDescription": {
+                    "text": TITLES.get(f.rule, WORKFLOW_TITLES.get(f.rule, f.rule))
+                },
                 "defaultConfiguration": {"level": _SARIF_LEVEL[f.severity]},
             })
             results.append(_sarif_result(f, uri))
