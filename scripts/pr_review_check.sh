@@ -38,6 +38,62 @@ if findings:
     raise SystemExit("git history attribution scan failed")
 PYATTR
 
+python - <<'PYHOOKS'
+from pathlib import Path
+import os
+import stat
+import subprocess
+
+expected_name = "Ying Chen"
+expected_email = "yingchen.for.upload@gmail.com"
+expected_hooks = Path.home() / ".git-hooks"
+findings: list[str] = []
+
+
+def git_config(key: str) -> str:
+    result = subprocess.run(
+        ["git", "config", "--global", "--get", key],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+if git_config("user.name") != expected_name:
+    findings.append(f"global user.name must be {expected_name!r}")
+if git_config("user.email") != expected_email:
+    findings.append(f"global user.email must be {expected_email!r}")
+
+configured_hooks = git_config("core.hooksPath")
+if Path(configured_hooks).expanduser() != expected_hooks:
+    findings.append(f"global core.hooksPath must be {expected_hooks}")
+
+for hook in ("pre-commit", "commit-msg", "pre-push"):
+    path = expected_hooks / hook
+    if not path.exists():
+        findings.append(f"missing global git hook: {path}")
+        continue
+    mode = path.stat().st_mode
+    if not mode & stat.S_IXUSR:
+        findings.append(f"global git hook is not executable: {path}")
+    text = path.read_text(encoding="utf-8")
+    if hook in {"pre-commit", "pre-push"}:
+        for required in ("Ying Chen", "yingchen.for.upload@gmail.com"):
+            if required not in text:
+                findings.append(f"global git hook {hook} is missing required identity check")
+                break
+    if hook in {"commit-msg", "pre-push"}:
+        for required in ("claude", "codex", "anthropic", "openai", "co-authored-by"):
+            if required not in text.lower():
+                findings.append(f"global git hook {hook} is missing blocked marker {required!r}")
+                break
+
+if findings:
+    print("\n".join(findings))
+    raise SystemExit("global git guard is not installed correctly")
+PYHOOKS
+
 python - <<'PY'
 import subprocess
 
