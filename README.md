@@ -159,6 +159,8 @@ agentguard --score ~/.claude     # one-line A–F security grade after the detai
 agentguard --fix .               # auto-harden: add the missing data-not-instructions guard
 agentguard --select AL300,AL301,AL302,AL303,AL305 .   # security rules only
 agentguard --publish-check .     # + repo checks: LICENSE, README, secrets, malware
+agentguard --workflow-scan prompt --text "is CI green and done?"   # scan prompts/log text
+git log --format='%an <%ae>%n%cn <%ce>%n%B' | agentguard --workflow-scan git-log --stdin
 agentguard --format sarif -o agentguard.sarif .       # GitHub code-scanning
 agentguard --format json .                            # machine-readable
 agentguard --fail-at critical .                       # only block on critical
@@ -235,6 +237,19 @@ plugin *or* vetting someone else's before you install it):
 
 Malware checks scan *code* files only (a README discussing `curl \| sh` is not malware). Escape
 hatches: a `.agentguardignore` (gitignore-style) and inline `# agentguard-allow AL510`.
+
+**AL6xx — workflow text checks** (`--workflow-scan`, for prompts, commands, git logs, and trace
+snippets):
+
+| Code | Sev | What it catches |
+|------|-----|-----------------|
+| AL600 | critical | Destructive memory/core-state shell action |
+| AL601 | major | Wrong identity / AI co-author marker risk |
+| AL602 | major | Claiming done/fixed/green before verification |
+| AL603 | major | Recommendation or missing/overdue claim before checking source data |
+| AL604 | minor | Cron/CI/auth/TCC workflow where infrastructure should be checked first |
+| AL605 | major | Money/portfolio/grant/valuation language needing current labeled data |
+| AL606 | info | Launch/stars/product-growth prompt where distribution may be the bottleneck |
 
 **AL2xx — robustness & safety**
 

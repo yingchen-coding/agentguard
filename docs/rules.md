@@ -184,3 +184,38 @@ published tool. **Fix:** remove it; if a security tool genuinely needs it, isola
 A `pre/postinstall` script that runs the shell or network — executes on every `npm install`, before
 the user runs anything. A favorite malware foothold. **Fix:** remove network/shell from install
 hooks; do setup explicitly at runtime.
+
+---
+
+## AL6xx — workflow text checks
+
+Run with `agentguard --workflow-scan {command,prompt,git-log,text}`. These checks scan raw workflow
+text instead of agent definition files: prompts, shell commands, git logs, and trace snippets.
+
+### AL600 · destructive memory/core-state action · critical
+A shell command targets memory or core-state files with a destructive operation. **Fix:** edit in
+place, or quarantine with an explicit backup and human approval.
+
+### AL601 · identity / AI co-author risk · major
+Commit, PR, or git-log text contains identity-bearing actions or AI co-author markers. **Fix:**
+confirm the intended human author/committer and remove AI co-author markers before publishing.
+
+### AL602 · completion claim needs verification · major
+The text claims done/fixed/green/passing. **Fix:** run or read the actual check before claiming the
+state.
+
+### AL603 · recommendation before source check · major
+The text recommends, excludes, or flags something missing/overdue without proof that source data was
+checked. **Fix:** search the real source or log first and cite the checked evidence.
+
+### AL604 · infrastructure should be checked before code · minor
+Cron, CI, auth, TCC, or scheduling terms appear. **Fix:** check logs, freshness, auth, CI, and macOS
+permissions before debugging code.
+
+### AL605 · fake or stale number risk · major
+Money, portfolio, grant, or valuation terms appear. **Fix:** use current data and label stale,
+nominal, placeholder, grant, and market values clearly.
+
+### AL606 · launch/distribution bottleneck reminder · info
+Launch, traffic, stars, product, or growth language appears. **Fix:** if the repo works but has no
+users, treat distribution as the bottleneck.

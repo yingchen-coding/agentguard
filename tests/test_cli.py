@@ -56,7 +56,9 @@ def test_missing_path_exits_two(capsys):
 
 def test_list_rules(capsys):
     assert main(["--list-rules"]) == 0
-    assert "AL300" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "AL300" in out
+    assert "AL600" in out
 
 
 def test_publish_check_runs(tmp_path, capsys):
@@ -155,3 +157,24 @@ def test_python_m_entrypoint_runs():
     )
     assert r.returncode == 0
     assert "agentguard" in r.stdout
+
+
+def test_workflow_scan_prompt_json(capsys):
+    assert main(["--workflow-scan", "prompt", "--text", "is CI green and done?",
+                 "--format", "json"]) == 1
+    data = json.loads(capsys.readouterr().out)
+    rules = {finding["rule"] for finding in data["findings"]}
+    assert {"AL602", "AL604"} <= rules
+
+
+def test_workflow_scan_prompt_respects_fail_at_critical(capsys):
+    assert main(["--workflow-scan", "prompt", "--text", "is CI green and done?",
+                 "--fail-at", "critical"]) == 0
+
+
+def test_workflow_scan_from_stdin(monkeypatch, capsys):
+    import io
+
+    monkeypatch.setattr("sys.stdin", io.StringIO("git commit -m fix"))
+    assert main(["--workflow-scan", "command", "--stdin", "--select", "AL601"]) == 1
+    assert "AL601" in capsys.readouterr().out
