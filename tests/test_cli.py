@@ -178,3 +178,30 @@ def test_workflow_scan_from_stdin(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", io.StringIO("git commit -m fix"))
     assert main(["--workflow-scan", "command", "--stdin", "--select", "AL601"]) == 1
     assert "AL601" in capsys.readouterr().out
+
+
+def test_automation_doctor_json_missing_log(tmp_path, capsys):
+    assert main([
+        "--automation-doctor",
+        "--automation-log",
+        f"{tmp_path / 'missing.log'}:1",
+        "--no-crontab",
+        "--no-launchagents",
+        "--format",
+        "json",
+    ]) == 1
+    data = json.loads(capsys.readouterr().out)
+    rules = {finding["rule"] for finding in data["project"]}
+    assert "AL607" in rules
+
+
+def test_automation_doctor_respects_fail_at_critical(tmp_path, capsys):
+    assert main([
+        "--automation-doctor",
+        "--automation-log",
+        f"{tmp_path / 'missing.log'}:1",
+        "--no-crontab",
+        "--no-launchagents",
+        "--fail-at",
+        "critical",
+    ]) == 0

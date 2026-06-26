@@ -63,11 +63,24 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--text", help="text to scan with --workflow-scan")
     p.add_argument("--stdin", action="store_true",
                    help="read workflow text from stdin for --workflow-scan")
+    p.add_argument("--automation-doctor", action="store_true",
+                   help="diagnose macOS cron/launchd automation failures")
+    p.add_argument("--automation-log", action="append", default=[], metavar="PATH:HOURS",
+                   help="log freshness check for --automation-doctor, e.g. ~/job.log:30")
+    p.add_argument("--automation-path", action="append", default=[], metavar="PATH",
+                   help="path readability check for --automation-doctor")
+    p.add_argument("--launchagents-dir", metavar="PATH",
+                   help="LaunchAgents directory to inspect for --automation-doctor")
+    p.add_argument("--no-crontab", action="store_true",
+                   help="skip crontab check for --automation-doctor")
+    p.add_argument("--no-launchagents", action="store_true",
+                   help="skip LaunchAgents check for --automation-doctor")
     p.add_argument("--version", action="version", version=f"agentguard {__version__}")
     return p
 
 
 def _list_rules() -> int:
+    from .automation import AUTOMATION_TITLES
     from .frameworks import short_refs
     from .project import PROJECT_TITLES
     from .rules import TITLES
@@ -86,7 +99,11 @@ def _list_rules() -> int:
     print("\n  -- AL6xx: workflow text, run with --workflow-scan --")
     for code, title in WORKFLOW_TITLES.items():
         print(line(code, title))
-    total = len(all_rules()) + len(PROJECT_TITLES) + len(WORKFLOW_TITLES)
+    print("\n  -- AL60x: automation doctor, run with --automation-doctor --")
+    for code, title in AUTOMATION_TITLES.items():
+        print(line(code, title))
+    total = len(all_rules()) + len(PROJECT_TITLES) + len(WORKFLOW_TITLES) + \
+        len(AUTOMATION_TITLES)
     print(f"\n{total} rules, mapped to OWASP LLM Top 10 (2025) & MITRE ATLAS. Disable inline with "
           f"`<!-- agentguard-disable AL202 -->`\n(or `# agentguard-allow AL510` in code), or "
           f"globally with --ignore. Full reference: docs/rules.md, docs/threat-mapping.md.")
@@ -166,12 +183,67 @@ def _run_workflow(args: argparse.Namespace) -> int:
     return 1 if worst is not None and worst >= threshold else 0
 
 
+def _run_automation_doctor(args: argparse.Namespace) -> int:
+    from .automation import scan_automation
+    from .linter import LintReport
+
+    cfg_fail = None
+    if not args.no_config:
+        from .config import load_config
+        cfg = load_config(Path("."))
+        cfg_fail = cfg.get("fail_at")
+    fail_at = args.fail_at or (cfg_fail if isinstance(cfg_fail, str) else "major")
+    if fail_at not in _SEV_NAMES:
+        print(f"agentguard: invalid fail-at: {fail_at}", file=sys.stderr)
+        return 2
+
+    logs = [_parse_automation_log_spec(spec) for spec in args.automation_log]
+    paths = [Path(path) for path in args.automation_path]
+    launchagents_dir = Path(args.launchagents_dir) if args.launchagents_dir else None
+    findings = scan_automation(
+        logs=logs,
+        paths=paths,
+        include_crontab=not args.no_crontab,
+        include_launch_agents=not args.no_launchagents,
+        launch_agents_dir=launchagents_dir,
+    )
+    select = _parse_codes(args.select)
+    ignore = _parse_codes(args.ignore) or set()
+    if select is not None:
+        findings = [f for f in findings if f.rule in select]
+    findings = [f for f in findings if f.rule not in ignore]
+
+    report = LintReport(project_findings=findings)
+    if args.format == "json":
+        text = render_json(report)
+    elif args.format == "sarif":
+        text = render_sarif(report)
+    else:
+        text = render_human(report, color=not args.no_color and sys.stdout.isatty())
+
+    if args.output:
+        Path(args.output).write_text(text + "\n", encoding="utf-8")
+        print(f"agentguard: wrote automation doctor report to {args.output}", file=sys.stderr)
+    else:
+        print(text)
+    return report.exit_code(_SEV_NAMES[fail_at])
+
+
+def _parse_automation_log_spec(spec: str) -> tuple[Path, float]:
+    if ":" not in spec:
+        return Path(spec), 30.0
+    path, hours = spec.rsplit(":", 1)
+    return Path(path), float(hours)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.list_rules:
         return _list_rules()
     if args.workflow_scan:
         return _run_workflow(args)
+    if args.automation_doctor:
+        return _run_automation_doctor(args)
 
     # Auto-discovery: find every agent definition set and scan them all, no paths needed.
     if args.discover:

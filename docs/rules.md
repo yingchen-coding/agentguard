@@ -219,3 +219,24 @@ nominal, placeholder, grant, and market values clearly.
 ### AL606 · launch/distribution bottleneck reminder · info
 Launch, traffic, stars, product, or growth language appears. **Fix:** if the repo works but has no
 users, treat distribution as the bottleneck.
+
+### AL607 · automation log missing, stale, or failing · major/minor
+The automation doctor found a missing/stale/unreadable log, or a failure phrase such as
+`Operation not permitted`. **Fix:** confirm cron/launchd fired, then inspect auth and macOS
+permissions before debugging application code.
+
+### AL608 · automation path unreadable or missing · major/minor
+A path used by scheduled automation is missing or unreadable. **Fix:** fix the path or check macOS
+Privacy & Security → Full Disk Access for terminal, cron, or launchd.
+
+### AL609 · automation PATH is too small · minor
+The environment PATH looks like cron's minimal default. **Fix:** use absolute binary paths or set
+PATH inside the scheduled job.
+
+### AL610 · crontab missing, unreadable, or empty · minor
+The current user's crontab cannot be read or has no entries. **Fix:** run `crontab -l` manually and
+install the expected job for the correct user.
+
+### AL611 · launch agent points to a missing executable · major/minor
+A LaunchAgent plist is missing `Program`/`ProgramArguments`, cannot be read, or points to a missing
+executable. **Fix:** repair the plist and use absolute executable paths.

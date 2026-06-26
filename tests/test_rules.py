@@ -1,10 +1,22 @@
 """Rule-level tests: each rule must fire on the pattern it targets and stay quiet otherwise."""
 from __future__ import annotations
 
+import os
+import plistlib
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
 
+from agentguard.automation import (
+    CommandResult,
+    check_crontab,
+    check_launch_agents,
+    check_log,
+    check_path_env,
+    check_path_readable,
+    scan_automation,
+)
 from agentguard.linter import Linter, discover
 from agentguard.models import Definition, Severity, parse_definition
 from agentguard.workflow import scan_workflow_text
@@ -55,6 +67,56 @@ def test_workflow_scan_recommendation_money_and_launch():
     text = "recommend a buy after portfolio valuation, then launch for stars"
     found = scan_workflow_text(text, "prompt")
     assert {"AL603", "AL605", "AL606"} <= codes(found)
+
+
+def test_automation_log_missing_and_stale(tmp_path):
+    missing = check_log(tmp_path / "missing.log", 1)
+    assert "AL607" in codes(missing)
+
+    log = tmp_path / "job.log"
+    log.write_text("ok\n", encoding="utf-8")
+    old = datetime.now(timezone.utc) - timedelta(hours=5)
+    os.utime(log, (old.timestamp(), old.timestamp()))
+    stale = check_log(log, 1, now=datetime.now(timezone.utc))
+    assert "AL607" in codes(stale)
+
+
+def test_automation_log_failure_phrase(tmp_path):
+    log = tmp_path / "job.log"
+    log.write_text("Operation not permitted\n", encoding="utf-8")
+    found = check_log(log, 24)
+    assert "AL607" in codes(found)
+    assert found[0].severity == Severity.MINOR
+
+
+def test_automation_path_env_and_crontab():
+    assert "AL608" in codes(check_path_readable(Path("/definitely/no/such/path/agentguard")))
+    assert "AL609" in codes(check_path_env("/usr/bin:/bin"))
+
+    def empty_crontab(_argv):
+        return CommandResult(0, "", "")
+
+    assert "AL610" in codes(check_crontab(empty_crontab))
+
+
+def test_automation_launch_agent_missing_program(tmp_path):
+    plist_path = tmp_path / "com.example.job.plist"
+    plist_path.write_bytes(plistlib.dumps({"Label": "com.example.job", "Program": "/no/such/bin"}))
+    found = check_launch_agents(tmp_path)
+    assert "AL611" in codes(found)
+    assert found[0].severity == Severity.MAJOR
+
+
+def test_automation_scan_combines_checks(tmp_path):
+    log = tmp_path / "job.log"
+    log.write_text("ok\n", encoding="utf-8")
+    found = scan_automation(
+        logs=[(tmp_path / "missing.log", 1)],
+        paths=[tmp_path],
+        include_crontab=False,
+        include_launch_agents=False,
+    )
+    assert "AL607" in codes(found)
 
 
 def run(raw, kind="agent", **kw):

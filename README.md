@@ -161,6 +161,8 @@ agentguard --select AL300,AL301,AL302,AL303,AL305 .   # security rules only
 agentguard --publish-check .     # + repo checks: LICENSE, README, secrets, malware
 agentguard --workflow-scan prompt --text "is CI green and done?"   # scan prompts/log text
 git log --format='%an <%ae>%n%cn <%ce>%n%B' | agentguard --workflow-scan git-log --stdin
+agentguard --automation-doctor --automation-log ~/Documents/learning/.cron.log:30 \
+  --automation-path ~/Documents                              # diagnose cron/launchd/TCC failures
 agentguard --format sarif -o agentguard.sarif .       # GitHub code-scanning
 agentguard --format json .                            # machine-readable
 agentguard --fail-at critical .                       # only block on critical
@@ -250,6 +252,11 @@ snippets):
 | AL604 | minor | Cron/CI/auth/TCC workflow where infrastructure should be checked first |
 | AL605 | major | Money/portfolio/grant/valuation language needing current labeled data |
 | AL606 | info | Launch/stars/product-growth prompt where distribution may be the bottleneck |
+| AL607 | major/minor | Missing, stale, unreadable, or failing automation logs |
+| AL608 | major/minor | Missing or unreadable automation paths, often TCC/Full Disk Access |
+| AL609 | minor | Cron-like minimal PATH |
+| AL610 | minor | Crontab missing, unreadable, or empty |
+| AL611 | major/minor | LaunchAgent plist missing an executable or pointing to a missing path |
 
 **AL2xx — robustness & safety**
 
