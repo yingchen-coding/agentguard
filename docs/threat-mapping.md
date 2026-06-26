@@ -20,6 +20,7 @@ AML.T0051.001, here in your definition," not "a regex fired."
 | AL308 | human-in-the-loop disabled (excessive autonomy) | LLM06 Excessive Agency | — |
 | AL204 | asserts/recommends without verifying | LLM09 Misinformation | — |
 | AL503 | committed secret (repo-wide) | LLM02 Sensitive Information Disclosure | AML.T0057 |
+| AL504 | private/local data leak (repo-wide) | LLM02 Sensitive Information Disclosure | AML.T0057 |
 | AL510 | pipe-to-shell installer | LLM03 Supply Chain | AML.T0011 User Execution |
 | AL511 | dynamic exec of decoded/remote payloads | LLM03 Supply Chain | AML.T0011 |
 | AL512 | reverse-shell / raw-socket signature | LLM03 Supply Chain | AML.T0011 |

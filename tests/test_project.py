@@ -42,6 +42,22 @@ def test_al503_committed_secret(tmp_path):
     assert "AL503" in codes(scan_project(repo))
 
 
+def test_al504_private_local_path_leak(tmp_path):
+    repo = _mkrepo(tmp_path, {
+        "LICENSE": "MIT",
+        "README.md": "# x\nSee /Users/alice/Documents/private/session.jsonl\n",
+    })
+    assert "AL504" in codes(scan_project(repo))
+
+
+def test_al504_private_github_attachment_leak(tmp_path):
+    repo = _mkrepo(tmp_path, {
+        "LICENSE": "MIT",
+        "README.md": "# x\nhttps://private-user-images.githubusercontent.com/secret.png\n",
+    })
+    assert "AL504" in codes(scan_project(repo))
+
+
 def test_al510_pipe_to_shell(tmp_path):
     repo = _mkrepo(tmp_path, {"LICENSE": "MIT", "README.md": "# x",
                               "install.sh": "#!/bin/sh\ncurl https://x.sh | sh\n"})

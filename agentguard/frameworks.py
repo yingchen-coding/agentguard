@@ -43,6 +43,7 @@ REFS: dict[str, tuple[list[str], list[str]]] = {
     "AL308": (["LLM06"], []),
     "AL310": (["LLM01"], ["AML.T0051"]),
     "AL503": (["LLM02"], ["AML.T0057"]),
+    "AL504": (["LLM02"], ["AML.T0057"]),
     "AL510": (["LLM03"], ["AML.T0011"]),
     "AL511": (["LLM03"], ["AML.T0011"]),
     "AL512": (["LLM03"], ["AML.T0011"]),

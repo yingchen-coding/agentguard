@@ -20,7 +20,7 @@ RULE_RE = re.compile(r"\bAL\d{3}\b")
 SECURITY_MAPPED = {
     "AL200", "AL202", "AL203", "AL204",
     "AL300", "AL301", "AL302", "AL303", "AL305", "AL306", "AL307", "AL308", "AL310",
-    "AL503", "AL510", "AL511", "AL512", "AL513",
+    "AL503", "AL504", "AL510", "AL511", "AL512", "AL513",
 }
 
 
