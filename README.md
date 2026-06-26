@@ -12,7 +12,7 @@
        alt="agentguard scanning an innocent-looking 'report-summarizer' agent: it flags a critical injection-to-RCE chain and a destructive action, then a rescan after the two-line fix returns a clean grade-A.">
 </p>
 
-**agentguard is a linter for AI agents** — `eslint`/`semgrep`, but for the markdown-with-frontmatter
+**agentguard is a security linter for AI agents** — `eslint`/`semgrep`, but for the markdown-with-frontmatter
 agent / command / skill definitions behind Claude Code (and any similar harness). Point it at a file
 or a folder of `.md` definitions; it parses **what tools each agent can use**, finds the
 prompt-injection and capability holes that turn *"summarize this file"* into remote code execution or
@@ -21,9 +21,9 @@ paired with the one-line fix. Deterministic, zero-dependency, no API key, no LLM
 
 ### Star this if
 
-- You are building Claude Code agents, slash commands, or skills and want a CI gate for prompt-injection risk.
-- You install community plugins and want to audit them before they touch your machine.
-- You care about deterministic security checks that run locally without sending agent definitions to an LLM.
+- You ship Claude Code agents, slash commands, or skills and need a CI gate for prompt-injection risk.
+- You install community plugins and want to audit them before they touch your filesystem.
+- You want deterministic local findings, not another LLM reviewing a prompt.
 
 ### What you'd use it for
 
