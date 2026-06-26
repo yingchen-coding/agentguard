@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .automation import AUTOMATION_TITLES
 from .frameworks import refs_for, short_refs
 from .linter import LintReport
 from .models import Finding, Severity
@@ -217,7 +218,10 @@ def render_sarif(report: LintReport, root: Path | None = None) -> str:
             rules_seen.setdefault(f.rule, {
                 "id": f.rule,
                 "shortDescription": {
-                    "text": TITLES.get(f.rule, WORKFLOW_TITLES.get(f.rule, f.rule))
+                    "text": TITLES.get(
+                        f.rule,
+                        WORKFLOW_TITLES.get(f.rule, AUTOMATION_TITLES.get(f.rule, f.rule)),
+                    )
                 },
                 "defaultConfiguration": {"level": _SARIF_LEVEL[f.severity]},
             })
@@ -225,7 +229,9 @@ def render_sarif(report: LintReport, root: Path | None = None) -> str:
     for f in report.project_findings:
         rules_seen.setdefault(f.rule, {
             "id": f.rule,
-            "shortDescription": {"text": PROJECT_TITLES.get(f.rule, f.rule)},
+            "shortDescription": {
+                "text": PROJECT_TITLES.get(f.rule, AUTOMATION_TITLES.get(f.rule, f.rule))
+            },
             "defaultConfiguration": {"level": _SARIF_LEVEL[f.severity]},
         })
         results.append(_sarif_result(f, f.path or "."))

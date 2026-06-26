@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from agentguard.automation import AUTOMATION_TITLES  # noqa: E402
 from agentguard.frameworks import REFS  # noqa: E402
 from agentguard.project import PROJECT_TITLES  # noqa: E402
 from agentguard.rules import TITLES, all_rules  # noqa: E402
@@ -57,7 +58,7 @@ def verify() -> list[str]:
     )
 
     registered = {code for code, _ in all_rules()}
-    known = registered | set(PROJECT_TITLES) | set(WORKFLOW_TITLES)
+    known = registered | set(PROJECT_TITLES) | set(WORKFLOW_TITLES) | set(AUTOMATION_TITLES)
     documented = set(RULE_RE.findall(rules_doc))
     missing_docs = known - documented
     unknown_docs = documented - known
