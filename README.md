@@ -381,6 +381,19 @@ agentguard --update-baseline .agentguard-baseline.json .   # once, commit the fi
 agentguard --baseline .agentguard-baseline.json .          # in CI: fails only on regressions
 ```
 
+### Desktop-agent plan check
+
+Before letting a desktop agent touch real apps, classify the request:
+
+```bash
+agentguard --desktop-plan \
+  --text "Open WeChat, capture Sina cards, then send a summary" \
+  --format json
+```
+
+`--desktop-plan` does not click, type, send, delete, or execute anything. It returns app scope,
+read/write/ambiguous action type, risk, required confirmation, and required evidence for each step.
+
 ---
 
 ## How it works
