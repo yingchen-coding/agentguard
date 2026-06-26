@@ -205,3 +205,32 @@ def test_automation_doctor_respects_fail_at_critical(tmp_path, capsys):
         "--fail-at",
         "critical",
     ]) == 0
+
+
+def test_desktop_plan_json_splits_read_and_write(capsys):
+    assert main([
+        "--desktop-plan",
+        "--text",
+        "Open WeChat and capture screenshots, then send a summary",
+        "--format",
+        "json",
+    ]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["surface"] == "desktop-plan"
+    assert [step["action_type"] for step in data["steps"]] == ["read", "write"]
+    assert data["steps"][0]["requires_confirmation"] is False
+    assert data["steps"][1]["requires_confirmation"] is True
+
+
+def test_desktop_plan_critical_password_is_gated(capsys):
+    assert main([
+        "--desktop-plan",
+        "--text",
+        "Open browser and change the bank password",
+        "--format",
+        "json",
+    ]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["steps"][0]["action_type"] == "write"
+    assert data["steps"][0]["risk"] == "critical"
+    assert data["steps"][0]["requires_confirmation"] is True

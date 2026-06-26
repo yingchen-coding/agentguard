@@ -65,6 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="read workflow text from stdin for --workflow-scan")
     p.add_argument("--automation-doctor", action="store_true",
                    help="diagnose macOS cron/launchd automation failures")
+    p.add_argument("--desktop-plan", action="store_true",
+                   help="classify a desktop-agent request into app scope, risk, confirmation "
+                        "gates, and required evidence without executing desktop actions")
     p.add_argument("--automation-log", action="append", default=[], metavar="PATH:HOURS",
                    help="log freshness check for --automation-doctor, e.g. ~/job.log:30")
     p.add_argument("--automation-path", action="append", default=[], metavar="PATH",
@@ -236,6 +239,38 @@ def _parse_automation_log_spec(spec: str) -> tuple[Path, float]:
     return Path(path), float(hours)
 
 
+def _run_desktop_plan(args: argparse.Namespace) -> int:
+    from .desktop import plan_desktop_task, render_desktop_json, render_desktop_plan
+
+    sources = sum(bool(item) for item in (
+        args.paths if args.paths != ["."] else [],
+        args.text,
+        args.stdin,
+    ))
+    if sources != 1:
+        print("agentguard: --desktop-plan requires exactly one source: --text, --stdin, "
+              "or text arguments", file=sys.stderr)
+        return 2
+    if args.stdin:
+        text = sys.stdin.read().strip()
+    elif args.text is not None:
+        text = args.text.strip()
+    else:
+        text = " ".join(args.paths).strip()
+    if not text:
+        print("agentguard: --desktop-plan received empty text", file=sys.stderr)
+        return 2
+
+    plan = plan_desktop_task(text)
+    output = render_desktop_json(plan) if args.format == "json" else render_desktop_plan(plan)
+    if args.output:
+        Path(args.output).write_text(output + "\n", encoding="utf-8")
+        print(f"agentguard: wrote desktop plan to {args.output}", file=sys.stderr)
+    else:
+        print(output)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.list_rules:
@@ -244,6 +279,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_workflow(args)
     if args.automation_doctor:
         return _run_automation_doctor(args)
+    if args.desktop_plan:
+        return _run_desktop_plan(args)
 
     # Auto-discovery: find every agent definition set and scan them all, no paths needed.
     if args.discover:
