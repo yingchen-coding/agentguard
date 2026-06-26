@@ -24,12 +24,24 @@ blocked = [
     "BEGIN " + "PRIVATE" + " KEY",
     "private-user" + "-images",
     "Temporary" + "Items",
+    "NSIRD_screencaptureui_",  # agentguard-allow AL504
+    "OPENAI_API_KEY",  # agentguard-allow AL504
+    "ANTHROPIC_API_KEY",  # agentguard-allow AL504
+    "GITHUB_TOKEN=",  # agentguard-allow AL504
+    "GH_TOKEN=",  # agentguard-allow AL504
+    "AWS_ACCESS_KEY_ID",  # agentguard-allow AL504
+    "AWS_SECRET_ACCESS_KEY",  # agentguard-allow AL504
+    "DATABRICKS_TOKEN",  # agentguard-allow AL504
+    "personal_medical_record",  # agentguard-allow AL504
+    "google-team-match",  # agentguard-allow AL504
 ]
 skip_dirs = {".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", "__pycache__", "build", "dist"}
 skip_files = {
     Path("agentguard/rules.py"),
+    Path("agentguard/project.py"),
     Path("eval/benchmark.py"),
     Path("LAUNCH-KIT.private.md"),
+    Path("scripts/pr_review_check.sh"),
 }
 skip_parts = {"tests"}
 findings: list[str] = []

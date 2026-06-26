@@ -28,6 +28,7 @@ PROJECT_TITLES = {
     "AL501": "no README",
     "AL502": "unresolved placeholder shipped in",
     "AL503": "hardcoded secret committed in the repo",
+    "AL504": "private/local data leaked in the repo",
     "AL510": "pipe-to-shell execution",
     "AL511": "dynamic exec of decoded/remote content",
     "AL512": "reverse-shell / raw-socket signature",
@@ -83,6 +84,12 @@ _TEXT_EXTS = _CODE_EXTS | {".md", ".rst", ".txt", ".toml", ".json", ".yml", ".ya
 _PLACEHOLDER = re.compile(
     r"(YOUR_USERNAME|YOUR_ORG|YOURNAME|YOUR_NAME_HERE|CHANGE_?ME|REPLACE_?ME|"
     r"<your-[a-z-]+>|TODO_USERNAME|INSERT_[A-Z_]+_HERE|example\.com/your)",
+)
+
+_PRIVATE_LOCAL_MARKERS = re.compile(
+    r"(/Users/[^/\s]+/|/var/folders/[^\s\"')>]+|private-user-images\.githubusercontent\.com|"
+    r"TemporaryItems/|NSIRD_screencaptureui_|"
+    r"\b(?:OPENAI|ANTHROPIC|GOOGLE|GITHUB|AWS|AZURE|DATABRICKS)_[A-Z0-9_]*(?:KEY|TOKEN|SECRET)\b\s*[:=])"
 )
 
 # ── malware / supply-chain signatures (high precision; low false-positive by design) ──
@@ -175,6 +182,16 @@ def scan_project(root: Path) -> list[Finding]:
                         "Remove it, rotate the credential, and load it from the environment.",
                         line=text[:sm.start()].count("\n") + 1, path=rel))
                     break
+            lm = _PRIVATE_LOCAL_MARKERS.search(text)
+            if lm and not _line_allows(text, lm.start(), "AL504"):
+                findings.append(Finding(
+                    "AL504", Severity.MAJOR,
+                    "Private/local data marker committed in the repo — public packages should not "
+                    "ship local user paths, temporary screenshot paths, private GitHub attachment "
+                    "URLs, transcript/medical workspace paths, or credential assignment stubs.",
+                    "Replace it with a synthetic example, a redacted placeholder, or a documented "
+                    "environment variable name with no value.",
+                    line=text[:lm.start()].count("\n") + 1, path=rel))
 
         # malware signatures in code/scripts/manifests only
         if ext in _CODE_EXTS or name in _CODE_NAMES:

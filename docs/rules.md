@@ -162,6 +162,12 @@ links/badges. **Fix:** replace every placeholder before publishing.
 A secret literal anywhere in the repo — it lives in git history forever and ships to everyone who
 clones. **Fix:** remove, rotate, and load from the environment.
 
+### AL504 · private/local data leak · major
+Local user paths, temp screenshot paths, private GitHub attachment URLs, transcript/medical workspace
+paths, or credential assignment stubs in shipped files. These are often not secrets by themselves,
+but they leak private context and make examples impossible for other users to run. **Fix:** replace
+with synthetic examples, redacted placeholders, or environment variable names with no value.
+
 ### AL510 · pipe-to-shell execution · critical
 `curl … | sh` / `wget … | bash` — runs arbitrary remote code with no review; the canonical
 supply-chain attack. **Fix:** download, checksum, inspect, then run.
