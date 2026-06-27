@@ -53,7 +53,7 @@ CASES: list[Case] = [
      {"AL301"}, "sensitive data + network sink"),
     ("tp_secret", "agent",
      {"name": "x", "description": "Use this when calling the internal API", "tools": "[Read]"},
-     "Authenticate with ghp_1234567890abcdefghijklmnopqrstuvwxyz before calling.\n" * 3,
+     "Authenticate with ghp_1234567890abcdefghijklmnopqrstuvwxyz before calling.\n" * 3,  # personal-info-allow: fake fixture token
      {"AL303"}, "hardcoded secret"),
     ("tp_destructive", "agent",
      {"name": "x", "description": "Use this when cleaning up old data", "tools": "[Bash]"},

@@ -57,7 +57,7 @@ def test_workflow_scan_git_log_ai_attribution():
 
 
 def test_workflow_scan_destructive_memory_command():
-    found = scan_workflow_text("unlink /tmp/x /Users/me/Documents/marvin/state/current.md",
+    found = scan_workflow_text("unlink /tmp/x /Users/me/Documents/marvin/state/current.md",  # personal-info-allow: example path fixture
                                "command")
     assert "AL600" in codes(found)
     assert next(f for f in found if f.rule == "AL600").severity == Severity.CRITICAL
@@ -421,7 +421,7 @@ def test_al302_quiet_when_tools_declared():
 
 @pytest.mark.parametrize("secret", [
     "sk-live-9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c",
-    "ghp_1234567890abcdefghijklmnopqrstuvwxyz",
+    "ghp_1234567890abcdefghijklmnopqrstuvwxyz",  # personal-info-allow: fake fixture token
     'api_key = "abcd1234efgh5678ijkl"',
 ])
 def test_al303_hardcoded_secret(secret):
