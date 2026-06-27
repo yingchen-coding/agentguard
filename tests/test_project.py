@@ -38,16 +38,56 @@ def test_al502_placeholder(tmp_path):
 
 def test_al503_committed_secret(tmp_path):
     repo = _mkrepo(tmp_path, {"LICENSE": "MIT", "README.md": "# x",
-                              "config.py": 'TOKEN = "ghp_1234567890abcdefghijklmnopqrstuvwxyz"'})
+                              "config.py": 'TOKEN = "ghp_1234567890abcdefghijklmnopqrstuvwxyz"'})  # personal-info-allow: fake fixture token
     assert "AL503" in codes(scan_project(repo))
 
 
 def test_al504_private_local_path_leak(tmp_path):
     repo = _mkrepo(tmp_path, {
         "LICENSE": "MIT",
-        "README.md": "# x\nSee /Users/alice/Documents/private/session.jsonl\n",
+        "README.md": "# x\nSee /Users/alice/Documents/private/session.jsonl\n",  # personal-info-allow: example path fixture
     })
     assert "AL504" in codes(scan_project(repo))
+
+
+def test_al504_home_path_leak(tmp_path):
+    repo = _mkrepo(tmp_path, {
+        "LICENSE": "MIT",
+        "README.md": "# x\nSee /home/alice/project/session.jsonl\n",  # personal-info-allow: example path fixture
+    })
+    assert "AL504" in codes(scan_project(repo))
+
+
+def test_al504_private_workspace_name_leak(tmp_path):
+    repo = _mkrepo(tmp_path, {
+        "LICENSE": "MIT",
+        "README.md": "# x\nSee Documents/workspace/state/current.md\n",
+    })
+    assert "AL504" in codes(scan_project(repo))
+
+
+def test_al504_personal_email_leak(tmp_path):
+    repo = _mkrepo(tmp_path, {
+        "LICENSE": "MIT",
+        "README.md": "# x\nContact jane.private@example.net\n",
+    })
+    assert "AL504" in codes(scan_project(repo))
+
+
+def test_al504_phone_leak(tmp_path):
+    repo = _mkrepo(tmp_path, {
+        "LICENSE": "MIT",
+        "README.md": "# x\nCall 415-555-1212\n",
+    })
+    assert "AL504" in codes(scan_project(repo))
+
+
+def test_al504_public_email_can_be_allowed(tmp_path):
+    repo = _mkrepo(tmp_path, {
+        "LICENSE": "MIT",
+        "README.md": "# x\nAuthor: maintainer@example.org <!-- agentguard-allow AL504 -->\n",
+    })
+    assert "AL504" not in codes(scan_project(repo))
 
 
 def test_al504_private_github_attachment_leak(tmp_path):
