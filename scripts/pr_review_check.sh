@@ -4,19 +4,20 @@ set -euo pipefail
 python - <<'PYATTR'
 import subprocess
 
-allowed = "Ying Chen <yingchen.for.upload@gmail.com>"
-blocked_message_terms = [
-    "claude",
-    "codex",
-    "anthropic",
-    "openai",
-    "co-authored-by",
+allowed = "Ying Chen <yingchen.for.upload@gmail.com>"  # agentguard-allow AL504
+# Block AI *attribution* — a co-author trailer or an AI-bot identity — NOT bare product mentions.
+# An AI-tooling repo legitimately writes "claude"/"anthropic"/"codex" in commit subjects (e.g.
+# "skip .claude/plugins when scanning"); the strong guard is the author/committer identity check
+# below. Scan HEAD (the branch being shipped), not --all (stray unmerged dependabot/PR refs and
+# orphaned pre-rewrite tags are not what main publishes).
+blocked_message_markers = [
+    "co-authored-by:",
     "noreply@anthropic.com",
     "noreply@openai.com",
 ]
 
 raw = subprocess.check_output(
-    ["git", "log", "--all", "--format=%H%x00%an <%ae>%x00%cn <%ce>%x00%B%x1e"],
+    ["git", "log", "HEAD", "--format=%H%x00%an <%ae>%x00%cn <%ce>%x00%B%x1e"],
     text=True,
 )
 findings: list[str] = []
@@ -30,8 +31,8 @@ for record in raw.strip("\x1e\n").split("\x1e"):
     if committer != allowed:
         findings.append(f"{short}: committer is {committer}, expected {allowed}")
     lowered = message.lower()
-    if any(term in lowered for term in blocked_message_terms):
-        findings.append(f"{short}: commit message contains blocked AI/provider marker")
+    if any(marker in lowered for marker in blocked_message_markers):
+        findings.append(f"{short}: commit message contains an AI co-author / bot-attribution marker")
 
 if findings:
     print("\n".join(findings))
@@ -108,7 +109,7 @@ blocked_message_markers = [
 ]
 
 raw = subprocess.check_output(
-    ["git", "log", "--all", "--format=%H%x00%an <%ae>%x00%cn <%ce>%x00%B%x1e"],
+    ["git", "log", "HEAD", "--format=%H%x00%an <%ae>%x00%cn <%ce>%x00%B%x1e"],
     text=True,
 )
 findings: list[str] = []
@@ -142,56 +143,4 @@ package_dir="$(mktemp -d)"
 python -m build --sdist --wheel --outdir "$package_dir"
 python -m twine check "$package_dir"/*
 
-python - <<'PY'
-from pathlib import Path
-
-blocked = [
-    "/" + "Users" + "/",
-    "ghp" + "_",
-    "BEGIN " + "RSA" + " KEY",
-    "BEGIN " + "OPENSSH" + " KEY",
-    "BEGIN " + "PRIVATE" + " KEY",
-    "private-user" + "-images",
-    "Temporary" + "Items",
-    "NSIRD_screencaptureui_",  # agentguard-allow AL504
-    "OPENAI_API_KEY",  # agentguard-allow AL504
-    "ANTHROPIC_API_KEY",  # agentguard-allow AL504
-    "GITHUB_TOKEN=",  # agentguard-allow AL504
-    "GH_TOKEN=",  # agentguard-allow AL504
-    "AWS_ACCESS_KEY_ID",  # agentguard-allow AL504
-    "AWS_SECRET_ACCESS_KEY",  # agentguard-allow AL504
-    "DATABRICKS_TOKEN",  # agentguard-allow AL504
-    "personal_medical_record",  # agentguard-allow AL504
-    "google-team-match",  # agentguard-allow AL504
-]
-skip_dirs = {".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", "__pycache__", "build", "dist"}
-skip_files = {
-    Path("agentguard/rules.py"),
-    Path("agentguard/project.py"),
-    Path("eval/benchmark.py"),
-    Path("LAUNCH-KIT.private.md"),
-    Path("scripts/pr_review_check.sh"),
-}
-skip_parts = {"tests"}
-findings: list[str] = []
-
-for path in Path(".").rglob("*"):
-    if not path.is_file():
-        continue
-    if any(part in skip_dirs or part.endswith(".egg-info") for part in path.parts):
-        continue
-    if path in skip_files or any(part in skip_parts for part in path.parts):
-        continue
-    try:
-        text = path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        continue
-    for needle in blocked:
-        if needle in text:
-            findings.append(f"{path}: contains blocked public-surface marker")
-            break
-
-if findings:
-    print("\n".join(findings))
-    raise SystemExit("public-surface scan failed")
-PY
+agentguard --publish-check --fail-at minor --no-color .

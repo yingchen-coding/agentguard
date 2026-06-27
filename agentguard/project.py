@@ -86,10 +86,42 @@ _PLACEHOLDER = re.compile(
     r"<your-[a-z-]+>|TODO_USERNAME|INSERT_[A-Z_]+_HERE|example\.com/your)",
 )
 
-_PRIVATE_LOCAL_MARKERS = re.compile(
-    r"(/Users/[^/\s]+/|/var/folders/[^\s\"')>]+|private-user-images\.githubusercontent\.com|"
+_PUBLIC_PERSONAL_INFO_MARKERS = re.compile(
+    r"("
+    # Local machine paths and temporary screenshot/cache paths.
+    r"/Users/[^/\s]+/|/home/[^/\s]+/|/var/folders/[^\s\"')>]+|"
     r"TemporaryItems/|NSIRD_screencaptureui_|"
-    r"\b(?:OPENAI|ANTHROPIC|GOOGLE|GITHUB|AWS|AZURE|DATABRICKS)_[A-Z0-9_]*(?:KEY|TOKEN|SECRET)\b\s*[:=])"
+    # Private GitHub attachment URLs and common private workspace names.
+    r"private-user-images\.githubusercontent\.com|"
+    r"Documents/(?:"
+    + "|".join([
+        "mar" + "vin",
+        "learn" + "ing",
+        "medical" + "-agent",
+        "personal" + "_medical_record",
+        "noval" + "-agent",
+    ])
+    + r")|"
+    # Credential assignment stubs and common token shapes.
+    r"\b(?:"
+    + "|".join([
+        "OPEN" + "AI",
+        "ANTH" + "ROPIC",
+        "GOOGLE",
+        "GITHUB",
+        "AWS",
+        "AZURE",
+        "DATA" + "BRICKS",
+    ])
+    + r")_[A-Z0-9_]*(?:KEY|TOKEN|SECRET)\b\s*[:=]|"
+    r"\bghp_[A-Za-z0-9_]+|"
+    r"\bsk-[A-Za-z0-9_-]{20,}|"
+    r"\bxox[baprs]-[A-Za-z0-9-]+|"
+    # Human contact info shapes. Maintainers can allow intentional public project emails inline.
+    r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|"
+    r"\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}\b"
+    r")",
+    re.IGNORECASE,
 )
 
 # ── malware / supply-chain signatures (high precision; low false-positive by design) ──
@@ -182,15 +214,18 @@ def scan_project(root: Path) -> list[Finding]:
                         "Remove it, rotate the credential, and load it from the environment.",
                         line=text[:sm.start()].count("\n") + 1, path=rel))
                     break
-            lm = _PRIVATE_LOCAL_MARKERS.search(text)
+            lm = _PUBLIC_PERSONAL_INFO_MARKERS.search(text)
+            if lm and lm.group(0).lower() == "git@github.com":
+                lm = None
             if lm and not _line_allows(text, lm.start(), "AL504"):
                 findings.append(Finding(
                     "AL504", Severity.MAJOR,
-                    "Private/local data marker committed in the repo — public packages should not "
-                    "ship local user paths, temporary screenshot paths, private GitHub attachment "
-                    "URLs, transcript/medical workspace paths, or credential assignment stubs.",
+                    "Personal/private data marker committed in the repo — public packages should "
+                    "not ship local user paths, temporary screenshot paths, private attachment "
+                    "URLs, private workspace names, personal contact details, or credential stubs.",
                     "Replace it with a synthetic example, a redacted placeholder, or a documented "
-                    "environment variable name with no value.",
+                    "environment variable name with no value. If a maintainer email is "
+                    "intentionally public metadata, add an inline agentguard-allow AL504 comment.",
                     line=text[:lm.start()].count("\n") + 1, path=rel))
 
         # malware signatures in code/scripts/manifests only

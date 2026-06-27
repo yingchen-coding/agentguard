@@ -161,8 +161,8 @@ agentguard --select AL300,AL301,AL302,AL303,AL305 .   # security rules only
 agentguard --publish-check .     # + repo checks: LICENSE, README, secrets, malware
 agentguard --workflow-scan prompt --text "is CI green and done?"   # scan prompts/log text
 git log --format='%an <%ae>%n%cn <%ce>%n%B' | agentguard --workflow-scan git-log --stdin
-agentguard --automation-doctor --automation-log ~/Documents/learning/.cron.log:30 \
-  --automation-path ~/Documents                              # diagnose cron/launchd/TCC failures
+agentguard --automation-doctor --automation-log ./examples/cron.log:30 \
+  --automation-path ./examples                              # diagnose cron/launchd/TCC failures
 agentguard --format sarif -o agentguard.sarif .       # GitHub code-scanning
 agentguard --format json .                            # machine-readable
 agentguard --fail-at critical .                       # only block on critical
