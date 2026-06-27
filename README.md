@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 <p align="center">
-  <img src="assets/hero.svg" width="820"
+  <img src="docs/assets/hero.svg" width="820"
        alt="agentguard scanning an innocent-looking 'report-summarizer' agent: it flags a critical injection-to-RCE chain and a destructive action, then a rescan after the two-line fix returns a clean grade-A.">
 </p>
 
