@@ -234,3 +234,32 @@ def test_desktop_plan_critical_password_is_gated(capsys):
     assert data["steps"][0]["action_type"] == "write"
     assert data["steps"][0]["risk"] == "critical"
     assert data["steps"][0]["requires_confirmation"] is True
+
+
+def test_workspace_plan_ranks_remote_mac_for_remote_request(capsys):
+    assert main([
+        "--workspace-plan",
+        "--text",
+        "Run a remote Mac mini coding agent over Tailscale with screenshots",
+        "--format",
+        "json",
+    ]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["surface"] == "workspace-plan"
+    assert data["recommendation"] == "remote-mac"
+    remote = next(item for item in data["options"] if item["environment"] == "remote-mac")
+    assert "latency sample" in remote["required_evidence"]
+
+
+def test_workspace_plan_flags_cloud_private_data_blocker(capsys):
+    assert main([
+        "--workspace-plan",
+        "--text",
+        "Use a cloud PC agent to read WeChat and local Documents",
+        "--format",
+        "json",
+    ]) == 0
+    data = json.loads(capsys.readouterr().out)
+    cloud = next(item for item in data["options"] if item["environment"] == "cloud-pc")
+    assert cloud["risk"] == "high"
+    assert cloud["blockers"]

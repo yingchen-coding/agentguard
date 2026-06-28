@@ -72,6 +72,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--interop-check", metavar="MANIFEST",
                    help="check an agent interoperability manifest for identity, discovery, "
                         "tool-schema, permission, and audit readiness")
+    p.add_argument("--workspace-plan", action="store_true",
+                   help="rank local desktop, remote Mac, cloud PC, phone, and enterprise app "
+                        "agent runtimes for a requested workflow without executing actions")
     p.add_argument("--automation-log", action="append", default=[], metavar="PATH:HOURS",
                    help="log freshness check for --automation-doctor, e.g. ~/job.log:30")
     p.add_argument("--automation-path", action="append", default=[], metavar="PATH",
@@ -308,6 +311,37 @@ def _run_interop_check(args: argparse.Namespace) -> int:
     return interop_exit_code(findings, fail_at)
 
 
+def _run_workspace_plan(args: argparse.Namespace) -> int:
+    from .workspace import plan_workspace, render_workspace_json, render_workspace_plan
+
+    sources = sum(bool(item) for item in (
+        args.paths if args.paths != ["."] else [],
+        args.text,
+        args.stdin,
+    ))
+    if sources != 1:
+        print("agentguard: --workspace-plan requires exactly one source: --text, --stdin, "
+              "or text arguments", file=sys.stderr)
+        return 2
+    if args.stdin:
+        text = sys.stdin.read().strip()
+    elif args.text is not None:
+        text = args.text.strip()
+    else:
+        text = " ".join(args.paths).strip()
+    if not text:
+        print("agentguard: --workspace-plan received empty text", file=sys.stderr)
+        return 2
+    plan = plan_workspace(text)
+    output = render_workspace_json(plan) if args.format == "json" else render_workspace_plan(plan)
+    if args.output:
+        Path(args.output).write_text(output + "\n", encoding="utf-8")
+        print(f"agentguard: wrote workspace plan to {args.output}", file=sys.stderr)
+    else:
+        print(output)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.list_rules:
@@ -320,6 +354,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_desktop_plan(args)
     if args.interop_check:
         return _run_interop_check(args)
+    if args.workspace_plan:
+        return _run_workspace_plan(args)
 
     # Auto-discovery: find every agent definition set and scan them all, no paths needed.
     if args.discover:

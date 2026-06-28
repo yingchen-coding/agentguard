@@ -164,6 +164,7 @@ git log --format='%an <%ae>%n%cn <%ce>%n%B' | agentguard --workflow-scan git-log
 agentguard --automation-doctor --automation-log ./examples/cron.log:30 \
   --automation-path ./examples                              # diagnose cron/launchd/TCC failures
 agentguard --interop-check agent-manifest.json       # check agent identity/capability/tool-schema readiness
+agentguard --workspace-plan --text "Run an agent on my remote Mac with screenshots"
 agentguard --format sarif -o agentguard.sarif .       # GitHub code-scanning
 agentguard --format json .                            # machine-readable
 agentguard --fail-at critical .                       # only block on critical
@@ -181,6 +182,14 @@ threshold, `2` usage error.
 agent runtimes. It checks for stable identity, versioning, capability declarations, tool input
 schemas, permission boundaries, human-confirmation classes, and audit fields. These checks are
 readiness checks, not a claim of compliance with any still-evolving vendor or national standard.
+
+### Workspace Planning
+
+`--workspace-plan` ranks where an agent should run: local desktop, remote Mac, cloud PC, phone
+agent, or a narrow enterprise app agent. It looks at GUI, screenshot, audio, private-file,
+messaging, purchase, and app-action requirements, then emits required evidence such as latency
+samples, audit logs, permission boundaries, and screenshot logs. It does not start or control any
+workspace.
 
 ### Configuration
 
