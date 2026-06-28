@@ -5,7 +5,7 @@ from tools.workflow_audit import audit
 
 def test_repository_workflows_stay_within_budget():
     payload, failures = audit(
-        __import__("pathlib").Path("evidence/workflow-budget.json")
+        __import__("pathlib").Path("docs/evidence/workflow-budget.json")
     )
     assert not failures
     assert payload["passed"]

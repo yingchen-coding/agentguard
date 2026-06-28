@@ -95,7 +95,7 @@ you run the command, you get the same answer I do. No API key, no LLM, no random
 pip install git+https://github.com/yingchen-coding/agentguard
 
 # 1. Watch the attack fire, then watch agentguard catch it (safe — nothing real runs):
-python examples/poc/exploit_demo.py
+python docs/examples/poc/exploit_demo.py
 
 # 2. Scan your own installed agents (or vet someone else's repo before you install it):
 agentguard --score ~/.claude
@@ -123,7 +123,7 @@ Security grade: D (66/100) — 1 critical, 0 major, 0 minor across 8 definitions
   **MITRE ATLAS** technique, inline on the finding ([docs/threat-mapping.md](docs/threat-mapping.md)).
   It catches **documented, real-world attack classes** — indirect injection, markdown-image
   exfiltration, confused-deputy, sub-agent propagation, command-arg injection — cataloged with
-  references in [docs/attacks.md](docs/attacks.md) (runnable fixtures in [examples/attacks/](examples/attacks/)).
+  references in [docs/attacks.md](docs/attacks.md) (runnable fixtures in [docs/examples/attacks/](docs/examples/attacks/)).
 - **Measured against reality, not a toy benchmark.** A labeled benchmark with adversarial
   *evasion* cases gives **100% precision / 93% recall** (`make bench`, gated in CI) — but a
   benchmark you wrote yourself flatters you. So the rules are tuned against **hundreds of real

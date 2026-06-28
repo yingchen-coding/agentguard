@@ -39,7 +39,7 @@ workflow-audit: ## bound matrix expansion, duplicate expensive work, and missing
 
 corpus:         ## parallel real-repository calibration loop
 	$(PYTHON) tools/corpus_audit.py \
-		--manifest corpus/manifest.json --output build/corpus-audit
+		--manifest docs/corpus/manifest.json --output build/corpus-audit
 
 quality: lint typecheck test bench adversarial contracts workflow-audit check-dist selfscan
 

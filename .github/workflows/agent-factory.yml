@@ -33,7 +33,7 @@ jobs:
             corpus-state-
       - name: Scan, deduplicate, diff, and generate repair patches
         run: |
-          args=(--manifest corpus/manifest.json --output build/corpus-audit --jobs 3)
+          args=(--manifest docs/corpus/manifest.json --output build/corpus-audit --jobs 3)
           if [[ -f .agentguard-corpus-state.json ]]; then
             args+=(--state .agentguard-corpus-state.json)
           fi

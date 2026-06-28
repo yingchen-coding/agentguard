@@ -81,7 +81,7 @@ def verify() -> list[str]:
         failures.append("framework mappings missing from docs: "
                         + ", ".join(sorted(undocumented_mappings)))
 
-    evidence = json.loads(_read("evidence/marketplace-snapshot.json"))
+    evidence = json.loads(_read("docs/evidence/marketplace-snapshot.json"))
     scope = evidence["scope"]
     findings = evidence["findings"]
     expected_fragments = (
@@ -149,10 +149,10 @@ def verify() -> list[str]:
     manifest = _read("MANIFEST.in")
     failures.extend(
         f"source distribution omits agent-factory directory: {directory}"
-        for directory in ("corpus", "eval", "evidence", "schemas", "skills", "tools")
+        for directory in ("docs/corpus", "eval", "docs/evidence", "schemas", "skills", "tools")
         if f"recursive-include {directory} " not in manifest
     )
-    workflow_budget = json.loads(_read("evidence/workflow-budget.json"))
+    workflow_budget = json.loads(_read("docs/evidence/workflow-budget.json"))
     budgeted_workflows = set(workflow_budget["workflows"])
     repository_workflows = {
         str(path.relative_to(ROOT))

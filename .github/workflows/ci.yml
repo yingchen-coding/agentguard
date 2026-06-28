@@ -99,10 +99,10 @@ jobs:
       - name: Assert the gate actually failed
         run: |
           if [ "${{ steps.gate.outcome }}" != "failure" ]; then
-            echo "::error::action did not fail on examples/ — fail-at gate is broken"
+            echo "::error::action did not fail on docs/examples/ — fail-at gate is broken"
             exit 1
           fi
-          echo "fail-at gate works: examples/ correctly failed the action."
+          echo "fail-at gate works: docs/examples/ correctly failed the action."
 
   self-lint:
     # agentguard lints its own example definitions and runs its own supply-chain check — dogfooding.
