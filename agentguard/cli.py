@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -68,6 +69,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--desktop-plan", action="store_true",
                    help="classify a desktop-agent request into app scope, risk, confirmation "
                         "gates, and required evidence without executing desktop actions")
+    p.add_argument("--interop-check", metavar="MANIFEST",
+                   help="check an agent interoperability manifest for identity, discovery, "
+                        "tool-schema, permission, and audit readiness")
     p.add_argument("--automation-log", action="append", default=[], metavar="PATH:HOURS",
                    help="log freshness check for --automation-doctor, e.g. ~/job.log:30")
     p.add_argument("--automation-path", action="append", default=[], metavar="PATH",
@@ -271,6 +275,39 @@ def _run_desktop_plan(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_interop_check(args: argparse.Namespace) -> int:
+    from .interop import (
+        check_interop_manifest,
+        interop_exit_code,
+        load_manifest,
+        render_interop_human,
+        render_interop_json,
+    )
+
+    path = Path(args.interop_check)
+    if not path.exists():
+        print(f"agentguard: interop manifest not found: {path}", file=sys.stderr)
+        return 2
+    try:
+        manifest = load_manifest(path)
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        print(f"agentguard: invalid interop manifest: {error}", file=sys.stderr)
+        return 2
+    findings = check_interop_manifest(manifest)
+    output = (
+        render_interop_json(path, manifest, findings)
+        if args.format == "json"
+        else render_interop_human(path, manifest, findings)
+    )
+    if args.output:
+        Path(args.output).write_text(output + "\n", encoding="utf-8")
+        print(f"agentguard: wrote interop report to {args.output}", file=sys.stderr)
+    else:
+        print(output)
+    fail_at = args.fail_at or "major"
+    return interop_exit_code(findings, fail_at)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.list_rules:
@@ -281,6 +318,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_automation_doctor(args)
     if args.desktop_plan:
         return _run_desktop_plan(args)
+    if args.interop_check:
+        return _run_interop_check(args)
 
     # Auto-discovery: find every agent definition set and scan them all, no paths needed.
     if args.discover:

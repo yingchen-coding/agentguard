@@ -163,6 +163,7 @@ agentguard --workflow-scan prompt --text "is CI green and done?"   # scan prompt
 git log --format='%an <%ae>%n%cn <%ce>%n%B' | agentguard --workflow-scan git-log --stdin
 agentguard --automation-doctor --automation-log ./examples/cron.log:30 \
   --automation-path ./examples                              # diagnose cron/launchd/TCC failures
+agentguard --interop-check agent-manifest.json       # check agent identity/capability/tool-schema readiness
 agentguard --format sarif -o agentguard.sarif .       # GitHub code-scanning
 agentguard --format json .                            # machine-readable
 agentguard --fail-at critical .                       # only block on critical
@@ -173,6 +174,13 @@ agentguard --list-rules                               # full catalog
 
 **Exit codes:** `0` clean (relative to `--fail-at`, default `major`), `1` findings at/above
 threshold, `2` usage error.
+
+### Interop Readiness
+
+`--interop-check` validates a JSON agent manifest before you try to connect it to other agents or
+agent runtimes. It checks for stable identity, versioning, capability declarations, tool input
+schemas, permission boundaries, human-confirmation classes, and audit fields. These checks are
+readiness checks, not a claim of compliance with any still-evolving vendor or national standard.
 
 ### Configuration
 

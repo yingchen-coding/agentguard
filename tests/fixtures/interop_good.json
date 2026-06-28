@@ -1,0 +1,32 @@
+{
+  "agent_id": "agent.example.search",
+  "name": "Example Search Agent",
+  "version": "1.0.0",
+  "capabilities": [
+    {
+      "name": "search_public_docs",
+      "scope": "public-web"
+    }
+  ],
+  "tools": [
+    {
+      "name": "search",
+      "input_schema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "permissions": {
+    "data_access": ["public-web"],
+    "confirmation_required_for": ["external-write", "purchase", "private-data-read"]
+  },
+  "audit": {
+    "event_fields": ["agent_id", "tool", "input_hash", "decision", "timestamp"]
+  }
+}

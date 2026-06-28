@@ -1,0 +1,15 @@
+{
+  "name": "Unclear Agent",
+  "capabilities": "does-things",
+  "tools": [
+    {
+      "input_schema": {
+        "type": "object"
+      }
+    }
+  ],
+  "permissions": {
+    "data_access": ["public-web"]
+  },
+  "audit": {}
+}
