@@ -136,11 +136,11 @@ def review(changed_paths: list[str]) -> dict[str, object]:
         requirements.append(Requirement(
             "workflow cost evidence",
             "automation topology changed and can add noise or duplicated work",
-            ("evidence/workflow-budget.json", "tests/test_workflow_audit.py"),
+            ("docs/evidence/workflow-budget.json", "tests/test_workflow_audit.py"),
         ))
     if _has_prefix(changed, "docs/") or "README.md" in changed:
         domains.add("docs")
-    if _has_prefix(changed, "schemas/") or _has_prefix(changed, "evidence/"):
+    if _has_prefix(changed, "schemas/") or _has_prefix(changed, "docs/evidence/"):
         domains.add("data-model")
 
     checks = []

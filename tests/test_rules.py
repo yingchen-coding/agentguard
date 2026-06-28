@@ -232,7 +232,7 @@ def test_al202_quiet_when_guarded():
 ])
 def test_al202_guard_phrasings(guard):
     # These all wrapped/varied phrasings must satisfy the injection guard (regression for the
-    # line-wrap + "an instruction" bug found by dogfooding examples/after.md).
+    # line-wrap + "an instruction" bug found by dogfooding docs/examples/after.md).
     raw = (f"---\nname: f\ndescription: Use this when the user gives you a document to read\n---\n"
            f"# B\nRead the document the user provides. {guard}\n" + "Body.\n" * 4)
     assert "AL202" not in codes(run(raw)), f"guard phrasing not recognized: {guard!r}"

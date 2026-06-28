@@ -51,7 +51,7 @@ def audit(budget_path: Path) -> tuple[dict[str, Any], list[str]]:
         for path in (ROOT / ".github" / "workflows").glob(pattern)
     }
     failures.extend(
-        f"{path}: workflow is not covered by evidence/workflow-budget.json"
+        f"{path}: workflow is not covered by docs/evidence/workflow-budget.json"
         for path in sorted(present - configured)
     )
     failures.extend(
@@ -121,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--budget",
         type=Path,
-        default=ROOT / "evidence" / "workflow-budget.json",
+        default=ROOT / "docs" / "evidence" / "workflow-budget.json",
     )
     parser.add_argument("--json-output", type=Path)
     args = parser.parse_args(argv)

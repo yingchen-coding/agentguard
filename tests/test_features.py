@@ -118,7 +118,7 @@ def test_empty_file_reports_only_undiscoverable(tmp_path):
     ("commands/05-command-arg-injection.md", "AL310"),
 ])
 def test_attack_fixture_caught(fixture, expected):
-    path = Path(__file__).parent.parent / "examples" / "attacks" / fixture
+    path = Path(__file__).parent.parent / "docs" / "examples" / "attacks" / fixture
     found = {x.rule for r in Linter().lint([path]).results for x in r.findings}
     assert expected in found, f"{fixture} should trip {expected}, got {sorted(found)}"
 

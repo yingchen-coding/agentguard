@@ -49,7 +49,7 @@ python -m mypy agentguard
 python eval/benchmark.py --verbose
 python tools/verify_contracts.py
 python tools/workflow_audit.py
-python tools/corpus_audit.py --manifest corpus/manifest.json --output build/corpus-audit
+python tools/corpus_audit.py --manifest docs/corpus/manifest.json --output build/corpus-audit
 python tools/query_audit.py build/corpus-audit/audit.json --view summary
 python -m build
 python -m twine check dist/*

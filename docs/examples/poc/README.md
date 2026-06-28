@@ -6,7 +6,7 @@ This is the vulnerability class `agentguard` exists to catch (rule **AL300**), d
 end-to-end with a script you can run. Nothing dangerous executes; no network calls are made.
 
 ```bash
-cd examples/poc
+cd docs/examples/poc
 python3 exploit_demo.py
 ```
 
@@ -51,6 +51,6 @@ unguarded chain to a shell is not where your security posture should be.
 
 ## The point: agentguard catches it before it ships
 
-`agentguard examples/poc/vulnerable_agent.md` flags **AL300** (injection→action chain) and tells
+`agentguard docs/examples/poc/vulnerable_agent.md` flags **AL300** (injection→action chain) and tells
 you the fix — add the guard, scope the tools. Run it on `hardened_agent.md` and it's clean. That's
 the whole product: turning an invisible, shippable exposure into a finding in CI.

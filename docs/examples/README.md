@@ -6,11 +6,11 @@ thought. Then run the linter.
 ## Before
 
 ```bash
-$ agentguard examples/before.md
+$ agentguard docs/examples/before.md
 ```
 
 ```
-examples/before.md
+docs/examples/before.md
   ✖ critical  12  AL203  Destructive/outward action ("delete") with no guardrail.
   ✖ major      —  AL300  Injection→action chain: reads outside content and can act, no guard.
   ✖ major      —  AL302  No `tools:` field — inherits the full toolset (Bash, Write, network).
@@ -42,7 +42,7 @@ privilege), a scope boundary ("you review only — never delete/push/merge"), an
 worked example.
 
 ```bash
-$ agentguard examples/after.md
+$ agentguard docs/examples/after.md
 ✓ clean — 1 definition checked, no findings
 ```
 
