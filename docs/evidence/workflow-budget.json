@@ -34,6 +34,14 @@
         "python -m build": 1,
         "twine check": 1
       }
+    },
+    ".github/workflows/pr-review.yml": {
+      "max_jobs_after_matrix": 1,
+      "require_job_timeouts": true,
+      "require_cancel_in_progress": false,
+      "command_budgets": {
+        "scripts/pr_review_check.sh": 1
+      }
     }
   }
 }

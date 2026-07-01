@@ -422,7 +422,7 @@ def test_al302_quiet_when_tools_declared():
 @pytest.mark.parametrize("secret", [
     "sk-live-9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c",
     "ghp_1234567890abcdefghijklmnopqrstuvwxyz",  # personal-info-allow: fake fixture token
-    'api_key = "abcd1234efgh5678ijkl"',
+    'api_key = "abcd1234efgh5678ijkl"',  # personal-info-allow: fake fixture token
 ])
 def test_al303_hardcoded_secret(secret):
     raw = (f"---\nname: f\ndescription: Use this when authenticating to the internal API\n"
