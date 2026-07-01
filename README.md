@@ -446,15 +446,6 @@ Use the scanner in CI; use the plugins before shipping a large or safety-sensiti
 /plugin install critique-loop@agent-armor
 ```
 
-## Local Review Gate
-
-```bash
-scripts/pr_review_check.sh
-```
-
-This runs contract verification, workflow budget checks, tests, Ruff, secret scanning, and
-commit-history attribution checks. GitHub runs the same gate through the `PR Review Gate` workflow.
-
 ## License
 
 MIT © Ying Chen
