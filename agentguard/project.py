@@ -93,15 +93,11 @@ _PUBLIC_PERSONAL_INFO_MARKERS = re.compile(
     r"TemporaryItems/|NSIRD_screencaptureui_|"
     # Private GitHub attachment URLs and common private workspace names.
     r"private-user-images\.githubusercontent\.com|"
-    r"Documents/(?:"
-    + "|".join([
-        "proj-a",
-        "proj-b",
-        "proj-c",
-        "proj-d",
-        "proj-e",
-    ])
-    + r")|"
+    # A local agent-workspace path — …/Documents/<project>/{state,memory,sessions}/… — is a
+    # private-data marker regardless of the project's name. Match the STRUCTURE, never a hardcoded
+    # project name: shipping a user's real private folder names inside a public scanner would itself
+    # be the leak the rule exists to catch.
+    r"Documents/[\w.-]+/(?:state|memory|sessions)/|"
     # Credential assignment stubs and common token shapes.
     r"\b(?:"
     + "|".join([

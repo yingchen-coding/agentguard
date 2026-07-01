@@ -61,7 +61,7 @@ def test_al504_home_path_leak(tmp_path):
 def test_al504_private_workspace_name_leak(tmp_path):
     repo = _mkrepo(tmp_path, {
         "LICENSE": "MIT",
-        "README.md": "# x\nSee Documents/workspace/state/current.md\n",
+        "README.md": "# x\nSee Documents/acme-workspace/state/current.md\n",
     })
     assert "AL504" in codes(scan_project(repo))
 

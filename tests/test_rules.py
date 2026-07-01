@@ -57,7 +57,7 @@ def test_workflow_scan_git_log_ai_attribution():
 
 
 def test_workflow_scan_destructive_memory_command():
-    found = scan_workflow_text("unlink /tmp/x /Users/me/Documents/workspace/state/current.md",  # personal-info-allow: example path fixture
+    found = scan_workflow_text("unlink /tmp/x /Users/me/Documents/acme-workspace/state/current.md",  # personal-info-allow: example path fixture
                                "command")
     assert "AL600" in codes(found)
     assert next(f for f in found if f.rule == "AL600").severity == Severity.CRITICAL

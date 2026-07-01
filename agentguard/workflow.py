@@ -40,7 +40,7 @@ WORKFLOW_RULES: tuple[WorkflowRule, ...] = (
         ("command",),
         (
             r"\b(rm|mv|unlink|shred)\b.*"
-            r"(/memory/|MEMORY\.md|/workspace/CLAUDE\.md|/workspace/state/)"
+            r"(/memory/|MEMORY\.md|CLAUDE\.md|AGENTS\.md|/state/)"
         ),
         "Destructive shell action targets memory or core-state files.",
         "Edit in place, or quarantine with an explicit backup and human approval.",
