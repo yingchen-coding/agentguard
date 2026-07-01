@@ -13,3 +13,5 @@ venv/
 .understand-anything/tmp/
 .understand-anything/diff-overlay.json
 LAUNCH-KIT.private.md
+
+scripts/pr_review_check.sh
