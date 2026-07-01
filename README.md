@@ -428,11 +428,11 @@ Every rule is a pure function `(Definition) -> list[Finding]`, calibrated agains
 Adding a rule requires positive, near-miss, benchmark, adversarial, contract, and real-corpus
 evidence where applicable.
 
-## Optional assisted hardening plugins
+## Optional Assisted Hardening Plugins
 
 agentguard is the deterministic layer — instant, free, every commit. For judgment-heavy review
 (internal contradictions, subtle coverage gaps, repair loops), this repo also ships an optional
-Claude Code plugin pack under [`plugins/agent-armor`](plugins/agent-armor):
+assisted hardening plugin pack under [`plugins/agent-armor`](plugins/agent-armor):
 
 - `adversarial-critic`: read-only red-team review of agent / command / skill definitions.
 - `critique-loop`: runs the critic, applies fixes, rereads, and repeats until major gaps are gone.
@@ -445,6 +445,15 @@ Use the scanner in CI; use the plugins before shipping a large or safety-sensiti
 /plugin install adversarial-critic@agent-armor
 /plugin install critique-loop@agent-armor
 ```
+
+## Local Review Gate
+
+```bash
+scripts/pr_review_check.sh
+```
+
+This runs contract verification, workflow budget checks, tests, Ruff, secret scanning, and
+commit-history attribution checks. GitHub runs the same gate through the `PR Review Gate` workflow.
 
 ## License
 
