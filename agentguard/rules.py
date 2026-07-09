@@ -168,6 +168,28 @@ _VERIFY = re.compile(
     r"already (?:documented|done|present|recorded))\b",
     re.IGNORECASE,
 )
+_SUPPLY_CHAIN_CHANGE = re.compile(
+    r"\b(install|upgrade|downgrade|uninstall|pin|bump|replace)\s+"
+    r"(?:the\s+|a\s+|an\s+)?(?:package|dependency|tool|cli|plugin|sdk|version|"
+    r"npm|pip|uv|poetry|package-lock|requirements)\b|"
+    r"\b(?:npm|pip|uv|poetry|pnpm|yarn|brew)\s+"
+    r"(?:install|add|upgrade|update|remove|uninstall)\b",
+    re.IGNORECASE,
+)
+_SUPPLY_CHAIN_TRIGGER = re.compile(
+    r"\b(security advisory|vulnerability|cve|backdoor|malware|compromise|"
+    r"news|article|report|rumou?r|风险提示|后门|漏洞|植毒|安全提示)\b",
+    re.IGNORECASE,
+)
+_SUPPLY_CHAIN_VERIFY = re.compile(
+    r"\b(official (?:advisory|release|release notes|changelog|source)|"
+    r"vendor (?:advisory|release|security page)|"
+    r"package registry|npm advisory|pypi|github security advisory|"
+    r"checksum|signature|signed release|sbom|provenance|"
+    r"verify (?:the )?(?:advisory|release|version|checksum|signature|source)|"
+    r"cross-?check (?:the )?(?:advisory|release|version|source))\b",
+    re.IGNORECASE,
+)
 # An assertive stem in a *noun* form ("assertions", "recommendation(s)", "classification") is data
 # the agent handles, not a high-stakes claim it makes. And "diagnose" near debug words ("read
 # stderr to diagnose", "diagnose the error") is troubleshooting, not a clinical/high-stakes claim.
@@ -503,6 +525,25 @@ def assert_without_verify(d: Definition) -> list[Finding]:
                     "assert facts it never checked.",
                     'Add a check-existing-data step before any recommendation/assertion '
                     '(the "grep before you recommend" rule).', ln)]
+
+
+@rule("AL207", "supply-chain change from unverified advisory/news")
+def supply_chain_change_without_advisory_verification(d: Definition) -> list[Finding]:
+    if not _SUPPLY_CHAIN_CHANGE.search(d.body):
+        return []
+    if not _SUPPLY_CHAIN_TRIGGER.search(d.body):
+        return []
+    if _SUPPLY_CHAIN_VERIFY.search(d.body):
+        return []
+    m = _SUPPLY_CHAIN_CHANGE.search(d.body)
+    assert m is not None
+    ln = d.body[:m.start()].count("\n") + d.fm_end_line + 1
+    return [Finding("AL207", Severity.MAJOR,
+                    f'Supply-chain change ("{m.group(0).strip()}") can be driven by an '
+                    "advisory/news signal without checking the official source first.",
+                    "Require official advisory/release-note/registry verification, and checksum "
+                    "or signature checks where available, before changing installed tooling.",
+                    ln)]
 
 
 @rule("AL205", "no scope boundary")

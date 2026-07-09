@@ -299,6 +299,25 @@ def test_al204_still_fires_on_real_scoring_without_verify():
     assert "AL204" in codes(run(raw))
 
 
+def test_al207_supply_chain_change_from_news_requires_official_verification():
+    raw = ("---\nname: f\ndescription: Use this when maintaining developer tools after security news\n---\n"
+           "# B\n"
+           "When an article reports a backdoor or vulnerability, upgrade the CLI version and "
+           "pin the dependency for the team.\n" * 3)
+    found = run(raw)
+    assert "AL207" in codes(found)
+    assert next(f for f in found if f.rule == "AL207").severity == Severity.MAJOR
+
+
+def test_al207_quiet_with_official_advisory_and_checksum_gate():
+    raw = ("---\nname: f\ndescription: Use this when maintaining developer tools after security news\n---\n"
+           "# B\n"
+           "When an article reports a backdoor or vulnerability, first verify the official "
+           "advisory, release notes, package registry version, and checksum. Only then upgrade "
+           "the CLI version or pin the dependency.\n" * 2)
+    assert "AL207" not in codes(run(raw))
+
+
 def test_al200_no_output_format():
     raw = ("---\nname: f\ndescription: Use this when the user wants a long structured job done\n---\n"
            "# B\n" + "Do the analysis step.\n" * 15)

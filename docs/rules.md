@@ -89,6 +89,12 @@ for …" boundary.
 A non-trivial agent with no example — often the only thing that pins down intent. **Fix:** add one
 concrete input → expected-output example.
 
+### AL207 · supply-chain change from unverified advisory/news · major
+The agent can install, upgrade, downgrade, pin, or replace tooling based on a security advisory,
+news report, or vulnerability claim without first checking the official source. **Fix:** require
+official advisory/release-note/registry verification, and checksum or signature checks where
+available, before changing installed tooling.
+
 ---
 
 ## AL3xx — security / threat model (capability-aware)
