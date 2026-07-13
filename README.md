@@ -19,6 +19,20 @@ prompt-injection and capability holes that turn *"summarize this file"* into rem
 data exfiltration, and returns specific, severity-ranked findings — each mapped to OWASP/MITRE and
 paired with the one-line fix. Deterministic, zero-dependency, no API key, no LLM call.
 
+## Profile Evidence
+
+This repo supports the public profile claim that agent-security risk can become a deterministic CI
+gate with actionable findings.
+
+- **Problem:** agent definitions can read untrusted content and still hold tools that write files,
+  run commands, or reach the network.
+- **Method:** agentguard parses agent, command, skill, and plugin definitions; maps capability
+  chains to severity-ranked findings; and emits local, deterministic reports.
+- **Result:** the repo ships a CLI, GitHub Action, benchmark, standards mapping, and publish checks
+  that make privilege risk reviewable before release.
+- **Reviewer path:** run `python docs/examples/poc/exploit_demo.py`, then `agentguard --score .` or
+  `agentguard --publish-check .`.
+
 ### Star this if
 
 - You ship Claude Code agents, slash commands, or skills and need a CI gate for prompt-injection risk.
