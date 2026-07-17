@@ -33,6 +33,22 @@ gate with actionable findings.
 - **Reviewer path:** run `python docs/examples/poc/exploit_demo.py`, then `agentguard --score .` or
   `agentguard --publish-check .`.
 
+## Paper
+
+The preprint source is in [`paper/main.tex`](paper/main.tex); rendered artifacts are
+[`paper/agentguard-paper.pdf`](paper/agentguard-paper.pdf),
+[`paper/agentguard-paper.html`](paper/agentguard-paper.html), and
+[`paper/agentguard-paper.docx`](paper/agentguard-paper.docx).
+
+Core claims reproduce locally:
+
+```bash
+python eval/benchmark.py --verbose
+python eval/adversarial_review.py
+python eval/naive_baselines.py
+python -m pytest -q
+```
+
 ### Star this if
 
 - You ship Claude Code agents, slash commands, or skills and need a CI gate for prompt-injection risk.
