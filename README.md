@@ -4,6 +4,7 @@
 
 [![CI](https://github.com/yingchen-coding/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/yingchen-coding/agentguard/actions)
 [![Version](https://img.shields.io/github/v/tag/yingchen-coding/agentguard?sort=semver&label=version)](https://github.com/yingchen-coding/agentguard/tags)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21420490.svg)](https://doi.org/10.5281/zenodo.21420490)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -39,6 +40,8 @@ The preprint source is in [`paper/main.tex`](paper/main.tex); rendered artifacts
 [`paper/agentguard-paper.pdf`](paper/agentguard-paper.pdf),
 [`paper/agentguard-paper.html`](paper/agentguard-paper.html), and
 [`paper/agentguard-paper.docx`](paper/agentguard-paper.docx).
+
+Citable artifact DOI: [10.5281/zenodo.21420490](https://doi.org/10.5281/zenodo.21420490).
 
 Core claims reproduce locally:
 
