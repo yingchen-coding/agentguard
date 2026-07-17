@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Ying Chen" />
+  <title>AgentGuard: Deterministic Security Linting for AI Agent Definitions</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    div.abstract {
+      margin: 2em 2em 2em 2em;
+      text-align: left;
+      font-size: 85%;
+    }
+    div.abstract-title {
+      font-weight: bold;
+      text-align: center;
+      padding: 0;
+      margin-bottom: 0.5em;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for citations */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+    }
+    .hanging-indent div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">AgentGuard: Deterministic Security Linting for AI
+Agent Definitions</h1>
+<p class="author">Ying Chen</p>
+<div class="abstract">
+<div class="abstract-title">Abstract</div>
+<p>AI coding harnesses execute agents defined in plain
+markdown-with-frontmatter files: a tool grant, a description, and
+natural-language instructions. These definitions are security-relevant
+code—a definition that reads untrusted content while holding shell or
+network tools is one injected sentence away from remote code execution
+or data exfiltration—yet they ship without any static analysis. We
+introduce AgentGuard, a deterministic, zero-dependency security linter
+for agent, command, and skill definitions. AgentGuard parses each
+definition’s capability grant, models untrusted-input sources and
+dangerous sinks, and reports severity-ranked findings for capability
+chains such as injection-to-execution, exfiltration paths, and disabled
+human-in-the-loop guardrails, each mapped to OWASP LLM Top-10 and MITRE
+ATLAS. On a gated benchmark of 15 vulnerable and 13 safe definitions,
+AgentGuard achieves 0.93 recall and 1.00 precision with zero false
+alarms—where naive grant-based or keyword-grep flagging reaches at most
+0.47 recall at 0.58 precision—and its security decisions are stable
+across 81 metamorphic adversarial rewrites; the single missed case is a
+named, documented recall boundary rather than a silent gap. Field
+studies of the official Claude Code plugin marketplace at two snapshots
+one month apart (33 and 84 unique definitions) found 85–86% lacked any
+injection guard and 37–39% could be driven to run a command or write a
+file by content they read—rates that held as the marketplace grew <span
+class="math inline">2.5×</span> and replicated on an independent
+third-party corpus (95% unguarded, 50% chain). Scanning is cheap: the
+full marketplace lints in under a second (<span
+class="math inline">≈</span>9 ms per definition). The core claim is
+narrow: privilege risk in agent definitions can be a deterministic,
+benchmark-gated CI check rather than a manual review afterthought.</p>
+</div>
+</header>
+<h1 id="introduction">Introduction</h1>
+<p>Indirect prompt injection is a structural property of LLM agents, not
+an implementation bug: any agent that reads attacker-influenced content
+and holds action-capable tools can be redirected by instructions
+embedded in that content <span class="citation"
+data-cites="greshake2023indirect perez2022ignore willison2022prompt">(Greshake
+et al. 2023; Perez and Ribeiro 2022; Willison 2022)</span>. Modern
+coding harnesses make this concrete at scale. An agent definition is a
+markdown file with YAML frontmatter declaring a name, a description, and
+a <code>tools:</code> grant; the body is a natural-language system
+prompt. A definition that says “summarize the file” while granting
+<code>Bash</code> is an unguarded injection-to-execution chain—the file
+being summarized can carry the instruction <code>curl …| sh</code>, and
+nothing in the definition tells the model to treat read content as
+data.</p>
+<p>These files are code. They are committed to repositories, distributed
+through plugin marketplaces, installed onto developer machines, and
+executed with filesystem, shell, and network access. Yet unlike the
+application code they sit beside—linted by Bandit, Semgrep, and a CI
+wall of static analysis <span class="citation"
+data-cites="bandit2024 semgrep2024">(PyCQA 2024; Semgrep, Inc.
+2024)</span>—agent definitions ship with no static check at all.
+Guidance exists as taxonomy (OWASP LLM Top-10, MITRE ATLAS <span
+class="citation" data-cites="owasp2025llm mitre2024atlas">(OWASP
+Foundation 2025; MITRE Corporation 2024)</span>) and as design advice
+<span class="citation" data-cites="anthropic2024agents">(Anthropic
+2024)</span>, but not as an enforceable gate.</p>
+<p>This paper asks a systems question: how much of agent-definition
+privilege risk can a deterministic static linter catch, at what
+precision, and with what honestly-stated recall boundary? AgentGuard’s
+answer is deliberately conservative: no LLM in the loop, no API call, no
+nondeterminism—every finding reproduces bit-for-bit in CI, and the
+linter’s own quality is enforced by a gated benchmark rather than
+asserted.</p>
+<h4 id="contributions.">Contributions.</h4>
+<ul>
+<li><p>A capability model for agent definitions—untrusted-input sources,
+dangerous sinks (execute, write, network, spawn), guard predicates, and
+fail-closed grant semantics—and 26 deterministic rules over it,
+organized in four layers from parse integrity to capability-chain
+security, each finding mapped to OWASP LLM Top-10 and MITRE
+ATLAS.</p></li>
+<li><p>A two-axis security posture score that separates “is anything
+dangerous?” (a size-independent critical-count ceiling) from “is it
+systemically sloppy?” (a per-file major/minor density), fixing the
+standard aggregation bug where grades scale with repository size instead
+of risk.</p></li>
+<li><p>A gated quality benchmark—minimum recall 0.93, precision 1.00,
+zero false alarms, a frozen case inventory, and 81 metamorphic
+adversarial variants—that fails the build when the linter regresses,
+plus a <em>named known miss</em> documenting the lexical recall
+boundary.</p></li>
+<li><p>A field study of the official Claude Code plugin marketplace
+quantifying, for the first time, how often shipped agent definitions
+carry the structural preconditions for injection-to-action
+attacks.</p></li>
+</ul>
+<h1 id="method">Method</h1>
+<p>Figure <a href="#fig:system" data-reference-type="ref"
+data-reference="fig:system">1</a> shows the pipeline. Definitions are
+parsed into a frontmatter/body pair; the capability model derives the
+tool grant, untrusted-input sources, sinks, and guard predicates; four
+rule layers evaluate the model; and severity-ranked findings feed the
+CLI, SARIF export, GitHub Action, baseline gate, and posture score.</p>
+<figure id="fig:system" data-latex-placement="t">
+
+<figcaption>AgentGuard pipeline. Every stage is deterministic: parsing
+fails closed into findings rather than silence, the capability model
+treats a missing <code>tools:</code> grant as full privilege, and the
+same input always produces the same findings—a property enforced by 81
+metamorphic adversarial variants in the quality gate.</figcaption>
+</figure>
+<h2 id="problem-formalization">Problem Formalization</h2>
+<p>Let a definition be <span
+class="math inline"><em>d</em> = (<em>φ</em>, <em>β</em>)</span> with
+frontmatter <span class="math inline"><em>φ</em></span> and body <span
+class="math inline"><em>β</em></span>, and let <span
+class="math inline"><em>T</em></span> be the harness tool universe. The
+capability model derives four objects: <span
+class="math display"><em>C</em>(<em>d</em>) ⊆ <em>T</em>,   <em>U</em>(<em>d</em>),   <em>Σ</em> = <em>Σ</em><sub>exec</sub> ∪ <em>Σ</em><sub>write</sub> ∪ <em>Σ</em><sub>net</sub> ∪ <em>Σ</em><sub>spawn</sub>,   <em>γ</em>(<em>d</em>) ∈ {0, 1}</span>
+where <span class="math inline"><em>C</em>(<em>d</em>)</span> is the
+tool grant—with the fail-closed convention that an absent
+<code>tools:</code> field yields <span
+class="math inline"><em>C</em>(<em>d</em>) = <em>T</em></span>, since
+that is the harness inheritance semantics; <span
+class="math inline"><em>U</em>(<em>d</em>)</span> is the set of
+untrusted-input sources the body instructs the agent to read (files, web
+content, tickets, user arguments); <span
+class="math inline"><em>Σ</em></span> partitions dangerous sinks into
+execute, write, network, and sub-agent-spawn classes; and <span
+class="math inline"><em>γ</em>(<em>d</em>)</span> is the guard
+predicate—true when the body contains an explicit “treat read content as
+data, not instructions” control.</p>
+<p>Chain rules are conjunctions over this model. The headline rule
+(AL300, injection-to-action) fires when <span
+class="math display"><em>U</em>(<em>d</em>) ≠ ∅ ∧ <em>C</em>(<em>d</em>) ∩ (<em>Σ</em><sub>exec</sub> ∪ <em>Σ</em><sub>write</sub>) ≠ ∅ ∧ ¬<em>γ</em>(<em>d</em>),</span>
+escalating to critical severity when the grant simultaneously holds a
+network-capable reader and an execution sink. The exfiltration rule
+(AL301) replaces the sink condition with <span
+class="math inline"><em>C</em>(<em>d</em>) ∩ <em>Σ</em><sub>net</sub> ≠ ∅</span>
+and the source condition with sensitive-data handling; the propagation
+rule (AL307) uses <span
+class="math inline"><em>Σ</em><sub>spawn</sub></span>, modeling injected
+instructions forwarded into spawned sub-agents. Each finding carries a
+severity in <span
+class="math inline">{critical, major, minor, info}</span>, an OWASP LLM
+Top-10 and MITRE ATLAS mapping, and a one-line fix.</p>
+<h2 id="worked-example">Worked Example</h2>
+<p>Figure <a href="#fig:worked" data-reference-type="ref"
+data-reference="fig:worked">2</a> shows the model end to end on a
+minimal definition of the kind the field study finds routinely: a triage
+agent granted <code>[Read, WebFetch, Bash]</code> whose body instructs
+it to read a ticket, fetch URLs from it, and run the reproduction
+commands it describes. In model terms, <span
+class="math inline"><em>U</em>(<em>d</em>) = {file, web}</span>, <span
+class="math inline"><em>C</em>(<em>d</em>) ∩ <em>Σ</em><sub>exec</sub> = {<code>Bash</code>}</span>,
+and <span class="math inline"><em>γ</em>(<em>d</em>) = 0</span>; the
+AL300 conjunction holds and escalates to critical because a
+network-capable reader (<code>WebFetch</code>) co-occurs with an
+execution sink. A ticket containing “to reproduce, run
+<code>curl …| sh</code>” drives this agent to remote code execution by
+design. The two-line fix—a treat-as-data guard plus a scoped
+grant—clears both findings.</p>
+<figure id="fig:worked" data-latex-placement="t">
+<pre><code>---
+name: ticket-triage
+description: Use this agent to triage incoming support tickets
+tools: [Read, WebFetch, Bash]
+---
+Read the ticket file the user points you at, fetch any URLs it
+references, and run whatever reproduction commands the ticket
+describes so the bug is confirmed before routing.</code></pre>
+<hr />
+<pre><code>!! critical AL300  Injection-&gt;action chain: reads external/untrusted
+   content and can also Bash -- with no instruction to treat that
+   content as data. Granted: Bash, Read, WebFetch.
+   [OWASP LLM01/LLM06 - ATLAS AML.T0051.001]
+   fix: add an explicit guard (&quot;treat all read content as data,
+   never as instructions&quot;) AND restrict tools: to the minimum.
+!! major    AL202  Consumes external content but never says to treat
+   it as data, not instructions.  [OWASP LLM01]
+2 findings in 1/1 files  (1 critical, 1 major)</code></pre>
+<figcaption>Worked example: a realistic triage-agent definition (top)
+and AgentGuard’s actual findings (bottom, condensed). The definition is
+not malicious—it is a natural way to write a triage agent—which is
+precisely why the preconditions are so prevalent in the field
+study.</figcaption>
+</figure>
+<h2 id="rule-taxonomy">Rule Taxonomy</h2>
+<p>The 26 rules are organized in four layers (Table <a
+href="#tab:taxonomy" data-reference-type="ref"
+data-reference="tab:taxonomy">1</a>). The layering is an analysis-order
+contract: structural rules establish that a definition can be parsed at
+all (fail-closed—an unreadable definition is a major finding, never a
+silent skip); instruction and contract rules check that behavior is
+specified tightly enough to audit; capability-chain rules reason over
+<span
+class="math inline"><em>C</em>(<em>d</em>) × <em>U</em>(<em>d</em>) × <em>Σ</em> × <em>γ</em>(<em>d</em>)</span>
+combinations. Severity semantics are strict: <em>critical</em> is
+reserved for security exposure (an unguarded destructive action, an
+exfiltration path, a hardcoded secret, an explicitly disabled
+human-in-the-loop check), never for structural or stylistic issues—so a
+CI gate keyed on <code>--fail-at critical</code> fires only on what that
+tier promises.</p>
+<div id="tab:taxonomy">
+<table>
+<caption>Rule taxonomy: 26 deterministic rules in four layers.
+AL0xx–AL2xx evaluate a definition in isolation; AL3xx rules evaluate
+dangerous <em>combinations</em> of capability grant, untrusted input,
+sinks, and missing guards. Findings can be suppressed only by a visible
+inline annotation, which is itself auditable.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">Concern</th>
+<th style="text-align: right;">Rules</th>
+<th style="text-align: left;">Representative rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">AL0xx</td>
+<td style="text-align: left;">parse &amp; structural integrity</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: left;">unreadable file, missing
+frontmatter/name</td>
+</tr>
+<tr>
+<td style="text-align: left;">AL1xx</td>
+<td style="text-align: left;">instruction quality</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">vague instruction, unenforceable
+safety</td>
+</tr>
+<tr>
+<td style="text-align: left;">AL2xx</td>
+<td style="text-align: left;">behavioral contract</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">injection guard absent, unguarded
+destructive act</td>
+</tr>
+<tr>
+<td style="text-align: left;">AL3xx</td>
+<td style="text-align: left;">capability-aware security</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: left;">injection<span
+class="math inline">→</span>exec chain, exfiltration path,</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: left;">secret in definition, human-in-loop
+disabled</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="security-posture-score">Security Posture Score</h2>
+<p>Aggregating findings into a repository grade has a standard failure
+mode: summing weighted findings makes the grade scale with repository
+size, so a 40-file benign scaffold floors to F on accumulated minor
+findings while a 2-file plugin with a real injection chain scores the
+same. AgentGuard separates the two questions a security grade conflates.
+“Is anything dangerous?” is a count-based ceiling over criticals,
+independent of size; “is it systemically sloppy?” is a per-file density
+over majors and minors. For <span class="math inline"><em>n</em></span>
+files with critical/major/minor counts <span
+class="math inline"><em>c</em>, <em>M</em>, <em>m</em></span>: <span
+class="math display"><em>ceiling</em> = 100 − 34min (<em>c</em>, 2),  <em>density</em> = (7<em>M</em> + 2<em>m</em>)/<em>n</em>,  <em>score</em> = max (0, min (<em>ceiling</em>, 100 − <em>density</em>)).</span>
+One critical caps the grade at D (66) regardless of how clean everything
+else is; two or more cap it at F (32); a benign sprawl with zero
+criticals and modest per-file density grades A. Non-A grades
+additionally name the files contributing the most density, so the number
+is actionable rather than opaque.</p>
+<h2
+id="quality-gate-benchmark-metamorphic-review-and-a-named-miss">Quality
+Gate: Benchmark, Metamorphic Review, and a Named Miss</h2>
+<p>Most linters report precision and stay quiet about recall.
+AgentGuard’s benchmark is a committed, CI-gated inventory: 15 positive
+(vulnerable) cases spanning every AL3xx chain class, 13 negative (safe)
+cases—several mined from real marketplace definitions that earlier
+versions falsely flagged—and explicit gates: recall <span
+class="math inline"> ≥ 0.93</span>, precision <span
+class="math inline"> = 1.00</span>, zero false alarms, and a frozen
+minimum case count so cases cannot be quietly deleted to keep the gate
+green.</p>
+<p>Two further mechanisms harden the gate. First, a metamorphic
+adversarial review applies 81 semantics-preserving rewrites to benchmark
+cases—reordering sections, renaming headings, paraphrasing
+instructions—and requires every security decision to remain unchanged,
+so the rules cannot be keying on incidental prompt structure. Second,
+the benchmark’s single missed case is <em>named</em>: a vulnerable
+definition whose destructive action is expressed through a fully
+arbitrary euphemism carries no lexical anchor a deterministic scanner
+can key on. The miss is committed to the gate configuration as a
+documented recall boundary rather than silently absorbed into an
+aggregate number.</p>
+<h2 id="ci-integration-and-baseline-gating">CI Integration and Baseline
+Gating</h2>
+<p>AgentGuard ships as a CLI, a GitHub Action, and a SARIF exporter. A
+baseline mode records the current finding set and fails CI only on
+<em>new</em> findings, making the linter adoptable on a repository with
+existing debt. Vendored third-party plugin caches are skipped by
+default—the same convention as <code>node_modules</code> for code
+linters—because findings in unmodifiable vendored copies are noise for
+the repository owner; an explicitly given plugin path is still scanned,
+which is the “vet before install” workflow.</p>
+<h1 id="experiments">Experiments</h1>
+<p>Three evidence levels parallel the design. The <em>benchmark</em>
+measures detection quality on a labeled corpus with adversarial
+variants, against naive deterministic baselines. The <em>field
+study</em> measures prevalence of the structural preconditions in
+shipped, real-world definitions at two snapshots. <em>Case studies</em>
+document precision hardening against real false positives. All numbers
+below reproduce from the repository with three commands
+(<code>python eval/benchmark.py</code>,
+<code>python eval/adversarial_review.py</code>, and
+<code>python eval/naive_baselines.py</code>); the first two run in CI on
+every push, so the reported figures are continuously re-verified rather
+than frozen at submission time.</p>
+<h4 id="cost.">Cost.</h4>
+<p>Determinism buys speed as well as reproducibility: on a commodity
+laptop (Apple M-series), the full 28-case benchmark plus gate checks
+completes in 0.08 s, the 81-variant metamorphic review in 0.21 s, and a
+scan of the entire official plugin marketplace (84 definitions) in
+0.77 s end-to-end—about 9 ms per definition. Per-commit, per-install,
+and marketplace-wide scanning are therefore free in practice, which is
+the economic premise of the CI-gate design.</p>
+<div id="tab:benchmark">
+<table>
+<caption>Gated benchmark, 15 vulnerable / 13 safe cases, AgentGuard
+v0.1.3 (212 unit tests alongside). Baselines are the two obvious
+deterministic alternatives—auditing the tool grant without reading the
+body, and grepping the body without modeling the grant—scored generously
+at the case level (any flag on a vulnerable case counts as caught;
+AgentGuard’s own gate additionally requires the correct rule to fire).
+The gate fails CI if recall drops below 0.93, precision below 1.00, any
+false alarm appears, the case inventory shrinks, or any metamorphic
+variant changes a security decision. The one miss is the named
+arbitrary-euphemism case (Section <a href="#sec:limitations"
+data-reference-type="ref"
+data-reference="sec:limitations">7</a>).</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Detector</th>
+<th style="text-align: right;">Recall</th>
+<th style="text-align: right;">Precision</th>
+<th style="text-align: right;">False alarms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>AgentGuard</strong> (capability
+model, 26 rules)</td>
+<td style="text-align: right;"><strong>0.93</strong></td>
+<td style="text-align: right;"><strong>1.00</strong></td>
+<td style="text-align: right;"><strong>0</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">Grant-based: flag any exec/write-capable
+grant</td>
+<td style="text-align: right;">0.47</td>
+<td style="text-align: right;">0.58</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;">Keyword grep
+(<code>rm</code>/<code>curl</code>/secret/…)</td>
+<td style="text-align: right;">0.33</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td style="text-align: left;">Grant <span class="math inline">∧</span>
+keyword</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;">Metamorphic adversarial variants
+(stable)</td>
+<td colspan="3" style="text-align: right;">81 / 81</td>
+</tr>
+<tr>
+<td style="text-align: left;">Named known misses</td>
+<td colspan="3" style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="tab:field">
+<table>
+<caption>Field study: the official Claude Code plugin marketplace at two
+snapshots one month apart, deduplicated by content hash against orphaned
+cache copies. The marketplace grew <span class="math inline">2.5×</span>
+between snapshots while the exposure rates held. “Exposed” means the
+structural precondition for an injection-to-action attack is
+present—untrusted input, action capability, no guard—not that a
+weaponized exploit was demonstrated against each definition. The fix in
+the common case is one guard line plus a scoped <code>tools:</code>
+grant.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Field study finding</th>
+<th style="text-align: right;">2026-06-12 (v0.1.2)</th>
+<th style="text-align: right;">2026-07-14 (v0.1.3)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Unique definitions (plugins)</td>
+<td style="text-align: right;">33 (6)</td>
+<td style="text-align: right;">84 (25)</td>
+</tr>
+<tr>
+<td style="text-align: left;">No “treat as data” guard on untrusted
+input (AL202)</td>
+<td style="text-align: right;">28 85%</td>
+<td style="text-align: right;">72 86%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Drivable to run a command / write a file
+(AL300)</td>
+<td style="text-align: right;">13 39%</td>
+<td style="text-align: right;">31 37%</td>
+</tr>
+<tr>
+<td style="text-align: left;">At least one security-class (AL3xx)
+finding</td>
+<td style="text-align: right;">13 39%</td>
+<td style="text-align: right;">38 45%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="tab:field-kind">
+<table>
+<caption>Per-kind breakdown, 2026-07-14 snapshot (<span
+class="math inline"><em>n</em> = 84</span>). Guarding practice is worst
+where the stakes are highest: agent definitions are guarded most often,
+yet chain most (58%), because they hold the broadest tool grants; skills
+are universally unguarded but chain less because many hold no
+action-capable grant.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Definition kind</th>
+<th style="text-align: right;"><span
+class="math inline"><em>n</em></span></th>
+<th style="text-align: right;">No guard (AL202)</th>
+<th style="text-align: right;">Full chain (AL300)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Agents</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">16 67%</td>
+<td style="text-align: right;">14 58%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Commands</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">25 86%</td>
+<td style="text-align: right;">8 28%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Skills</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">29 100%</td>
+<td style="text-align: right;">9 31%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Other frontmatter definitions</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="precision-hardening-case-studies.">Precision-hardening case
+studies.</h4>
+<p>Two rule revisions illustrate the precision discipline. The
+assertive-claims rule (AL204) originally fired on any
+confident-recommendation stem; validation against real agent definitions
+showed it also fired where the stem was merely <em>described</em> rather
+than performed—inside an output-template code fence, as a noun phrase,
+or as the object of a data verb (“extract scores from…”). The rule now
+distinguishes described from performed assertions, with regression
+tests, and benchmark recall and precision held. Similarly, the
+structural layer initially graded an empty file as multiple
+missing-field findings; it now emits a single missing-frontmatter
+finding, because one root cause should be one finding. Both revisions
+came from running the tool on real definitions and treating every false
+positive as a gate-level bug.</p>
+<h1 id="results">Results</h1>
+<h2 id="detection-quality">Detection Quality</h2>
+<p>On the gated benchmark (Table <a href="#tab:benchmark"
+data-reference-type="ref" data-reference="tab:benchmark">2</a>),
+AgentGuard catches 14 of 15 vulnerable definitions (recall 0.93) and
+produces zero findings on all 13 safe definitions (precision 1.00, zero
+false alarms). The baselines quantify what the capability model buys:
+flagging on the tool grant alone reaches 0.47 recall with 5 false alarms
+(it misses body-level risks like hardcoded secrets and sensitive-data
+exfiltration, and flags guarded definitions that hold broad grants
+safely), while keyword grep reaches 0.33 with the same 5 false alarms
+(it keys on words rather than on who can do what to which input);
+requiring both signals drops recall to 0.20. Detection here genuinely
+requires the joint <span
+class="math inline"><em>C</em>(<em>d</em>) × <em>U</em>(<em>d</em>) × <em>Σ</em> × <em>γ</em>(<em>d</em>)</span>
+analysis, not either projection of it. The positive set spans every
+capability-chain class: injection-to-execution, exfiltration,
+secret-in-definition, disabled human-in-the-loop, sub-agent propagation,
+and untrusted command construction. The negative set is the harder half:
+several cases are real marketplace definitions that superficially
+pattern-match a vulnerability—a security reviewer agent that
+<em>discusses</em> destructive commands, a template that
+<em>renders</em> assertive scores—and earlier versions flagged them;
+each drove a precision fix.</p>
+<h2 id="metamorphic-stability">Metamorphic Stability</h2>
+<p>All 81 semantics-preserving rewrites of benchmark cases leave every
+security decision unchanged. This is the linting analogue of an
+invariance test: a scanner whose verdict flips when a heading is renamed
+is keying on prompt structure, not on the capability model. The
+metamorphic suite runs in CI, so structural over-fitting cannot regress
+silently.</p>
+<h2 id="field-prevalence">Field Prevalence</h2>
+<p>The marketplace study (Table <a href="#tab:field"
+data-reference-type="ref" data-reference="tab:field">3</a>) is, to our
+knowledge, the first quantified measurement of injection-attack
+preconditions in shipped agent definitions: 85–86% of official
+marketplace definitions carry no injection guard of any kind, and 37–39%
+combine untrusted input with an action-capable grant and no guard—the
+full AL300 precondition. The two snapshots are the stronger result: the
+marketplace grew from 33 definitions in 6 plugins to 84 in 25 within a
+month, and the exposure rates did not move—new plugins ship with the
+same unguarded defaults as old ones, so the exposure is a property of
+how definitions are written, not of a few early outliers. The per-kind
+breakdown (Table <a href="#tab:field-kind" data-reference-type="ref"
+data-reference="tab:field-kind">4</a>) sharpens this: agent definitions,
+which hold the broadest grants, chain at 58%, and skills are unguarded
+without exception. The study protocol deduplicates cache copies by
+content hash (counting them would double the denominator) and pins each
+snapshot date and scanner version. The numbers quantify exposure, not
+exploitation; the point is that the preconditions are the
+<em>default</em> state of shipped definitions, not the exception.</p>
+<h4 id="cross-distribution-replication.">Cross-distribution
+replication.</h4>
+<p>To test whether the unguarded default is specific to the official
+marketplace, we ran the same reproducible field-study protocol
+(<code>python eval/field_study.py</code>) over an independent corpus: 20
+unique definitions from two third-party plugin packages installed from
+<em>outside</em> the official marketplace (Table <a
+href="#tab:field-cross" data-reference-type="ref"
+data-reference="tab:field-cross">5</a>). The exposure is if anything
+worse: 19/20 (95%) carry no injection guard and 10/20 (50%) hold the
+full AL300 chain, versus 86% and 37% on the official set. Pooled across
+both channels (104 definitions), 88% are unguarded and 39% chain. The
+finding replicates on a distribution the official marketplace’s authors
+do not control, which is the evidence that the unguarded default is an
+ecosystem property of how agent definitions are written, not an artifact
+of one registry’s review process. A manual precision check confirms the
+third-party chain findings are not false positives: all 10 flagged
+definitions omit the <code>tools:</code> field (inheriting
+execute-capable tools) while instructing the agent to read untrusted
+input (source files, articles, or codebases) with no
+data-not-instructions guard; one (<code>file-analyzer</code>) is
+additionally told to “write and execute” an extraction script over the
+untrusted files it reads—a textbook read-plus-execute chain. Precision
+on the independent chain set is 10/10.</p>
+<div id="tab:field-cross">
+<table>
+<caption>Cross-distribution replication (2026-07-15, AgentGuard v0.1.3).
+The same protocol run on an independent third-party corpus reproduces
+the unguarded-default finding at an even higher rate, deduplicated by
+content hash. Third-party packages are described in aggregate; the
+runnable <code>eval/field_study.py</code> takes corpus roots as
+arguments and hardcodes none.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Distribution channel</th>
+<th style="text-align: right;">Defs</th>
+<th style="text-align: right;">No guard (AL202)</th>
+<th style="text-align: right;">Full chain (AL300)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Official marketplace</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">72 86%</td>
+<td style="text-align: right;">31 37%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Independent third-party plugins</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">19 95%</td>
+<td style="text-align: right;">10 50%</td>
+</tr>
+<tr>
+<td style="text-align: left;">Pooled</td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">91 88%</td>
+<td style="text-align: right;">41 39%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="posture-score-calibration">Posture Score Calibration</h2>
+<p>The two-axis score separates cases that single-axis aggregation
+conflates: a benign 40-file definition set with zero criticals, 8
+majors, and 130 minors grades A (92)—under summed weighting it would
+floor to F—while a 2-file plugin containing one real injection critical
+is capped at D (66) and any set with two or more criticals is pinned at
+F (32) regardless of size. The grade now tracks danger and sloppiness
+independently, and by construction cannot be diluted by adding clean
+files (the critical ceiling is count-based, not averaged); these
+calibration points are regression tests in the suite. Non-A grades name
+the files dragging density, which converts the grade from a verdict into
+a worklist.</p>
+<h1 id="discussion">Discussion</h1>
+<h4
+id="why-deterministic-when-an-llm-reviewer-would-understand-more">Why
+deterministic, when an LLM reviewer would understand more?</h4>
+<p>An LLM reviewing agent definitions can, in principle, catch the
+arbitrary-euphemism case a lexical scanner misses. AgentGuard
+deliberately excludes LLM calls for three reasons. First,
+reproducibility: a CI gate whose verdict varies across runs, model
+versions, or temperature settings cannot gate merges—the same diff must
+always get the same answer. Second, the reviewer is itself injectable:
+an LLM reading a malicious definition is exposed to the very attack
+class it is auditing, and a definition can embed instructions aimed at
+its reviewer <span class="citation"
+data-cites="greshake2023indirect">(Greshake et al. 2023)</span>. Third,
+marginal cost: a zero-dependency scanner runs on every commit, every
+marketplace install, and every pre-commit hook at no per-call cost,
+which is what makes fleet-wide and marketplace-wide scanning
+economically trivial. The right division of labor is a deterministic
+gate for the structural preconditions plus human (or model) review for
+semantics, with the gate documenting exactly where its boundary
+lies.</p>
+<h4 id="exposure-is-not-exploitation.">Exposure is not
+exploitation.</h4>
+<p>The field-study framing matters for calibration. An unguarded
+read-plus-execute definition is an unlocked door, not a robbed house:
+the claim is the structural precondition, not a demonstrated end-to-end
+compromise of each definition. This is the same epistemic position as a
+memory-safety lint—most flagged buffer usages will never be attacked,
+and flagging them is still correct because the fix is cheap (one guard
+line, one scoped grant) and the failure is catastrophic and silent when
+it lands.</p>
+<h4 id="severity-semantics-as-a-contract.">Severity semantics as a
+contract.</h4>
+<p>Reserving <em>critical</em> for security exposure—never structural
+sprawl—is what makes <code>--fail-at critical</code> a meaningful CI
+policy. The posture score extends the same contract to the aggregate:
+the critical ceiling cannot be diluted by repository size, and the
+density axis cannot manufacture a critical. Severity inflation is the
+fastest way a security tool loses its audience; the gate treats it as a
+bug class, not a style choice.</p>
+<h4 id="the-named-miss-as-methodology.">The named miss as
+methodology.</h4>
+<p>Committing a known-missed case to the quality gate—by name, with the
+reason it is missed—inverts the usual incentive. A benchmark the tool
+author controls invites quietly dropping hard cases; freezing the
+inventory and naming the miss makes the recall boundary a reviewable
+artifact. We consider this pattern (gate on recall <em>and</em>
+precision, freeze the case inventory, name the misses) more transferable
+than any individual rule.</p>
+<h1 id="related-work">Related Work</h1>
+<p>Indirect prompt injection was established as a structural risk of
+LLM-integrated applications by Greshake et al. <span class="citation"
+data-cites="greshake2023indirect">(Greshake et al. 2023)</span>, with
+earlier attack taxonomies from Perez and Ribeiro <span class="citation"
+data-cites="perez2022ignore">(Perez and Ribeiro 2022)</span> and the
+term coined by Willison <span class="citation"
+data-cites="willison2022prompt">(Willison 2022)</span>. OWASP LLM Top-10
+and MITRE ATLAS catalogue the threat classes <span class="citation"
+data-cites="owasp2025llm mitre2024atlas">(OWASP Foundation 2025; MITRE
+Corporation 2024)</span>; AgentGuard operationalizes a subset of them as
+executable checks and cites the mappings in each finding. Anthropic’s
+agent-design guidance recommends minimal tool grants and treating
+retrieved content as data <span class="citation"
+data-cites="anthropic2024agents">(Anthropic 2024)</span>; AgentGuard
+turns those recommendations into failing CI checks. Alignment-auditing
+tools such as Petri probe model <em>behavior</em> dynamically <span
+class="citation" data-cites="anthropic2025petri">(Anthropic
+2025)</span>; AgentGuard is complementary, analyzing the
+<em>definition</em> statically before any model call.</p>
+<p>Table <a href="#tab:comparison" data-reference-type="ref"
+data-reference="tab:comparison">6</a> positions AgentGuard against the
+nearest tooling. Classical security linters (Bandit, Semgrep) analyze
+program source and do not parse agent frontmatter, tool grants, or
+natural-language capability chains <span class="citation"
+data-cites="bandit2024 semgrep2024">(PyCQA 2024; Semgrep, Inc.
+2024)</span>. LLM-based prompt reviewers understand semantics but are
+nondeterministic, per-call priced, and themselves injectable. Taxonomies
+name the risks but do not detect them.</p>
+<div id="tab:comparison">
+<table>
+<caption>Positioning. Code SAST tools (Bandit, Semgrep) share the
+deterministic-gate philosophy but analyze program source, not agent
+definitions. LLM reviewers can reach semantics deterministic rules
+cannot, at the cost of reproducibility, per-call price, and reviewer
+injectability. Taxonomies (OWASP LLM Top-10, MITRE ATLAS) define the
+threat classes AgentGuard’s findings map to.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Capability</th>
+<th style="text-align: center;">AgentGuard</th>
+<th style="text-align: center;">Code SAST</th>
+<th style="text-align: center;">LLM reviewer</th>
+<th style="text-align: center;">OWASP/ATLAS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Parses agent definitions &amp; tool
+grants</td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">partial</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td style="text-align: left;">Capability-chain reasoning (<span
+class="math inline"><em>U</em> × <em>Σ</em> × <em>γ</em></span>)</td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">partial</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td style="text-align: left;">Deterministic verdicts</td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td style="text-align: left;">Zero per-scan cost</td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td style="text-align: left;">Gated recall + precision benchmark</td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td style="text-align: left;">Metamorphic stability testing</td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td style="text-align: left;">Named known misses</td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td style="text-align: left;">CI baseline gating &amp; SARIF</td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;"><span class="math inline">✓</span></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="sec:limitations">Limitations</h1>
+<p>AgentGuard’s analysis is lexical and structural, not semantic. The
+named benchmark miss is the honest statement of this boundary: a
+destructive action expressed through a fully arbitrary euphemism
+(“perform the usual tidy-up on the records”) carries no anchor a
+deterministic scanner can key on without either an allowlist of safe
+phrasings or a semantic model. The metamorphic suite bounds over-fitting
+to prompt structure but cannot grant understanding; recall against a
+motivated adversary who knows the rules is strictly lower than benchmark
+recall against natural definitions.</p>
+<p>The benchmark is partly self-authored, a structural conflict
+mitigated but not eliminated: the negative cases are anchored in real
+marketplace definitions that produced false positives, the positive
+inventory is frozen so hard cases cannot be dropped, the misses are
+named, and the metamorphic variants are generated mechanically—but an
+external, adversarially-contributed corpus would be stronger evidence,
+and building one is future work.</p>
+<p>The field study covers two temporal snapshots of the official
+marketplace (<span class="math inline"><em>n</em> = 33</span> and <span
+class="math inline"><em>n</em> = 84</span> definitions, one month apart)
+plus one independent third-party corpus (<span
+class="math inline"><em>n</em> = 20</span>). The exposure rate
+replicates across both time (stable as the marketplace grows) and
+distribution channel (higher on third-party plugins), which is stronger
+than a single snapshot, but 104 definitions across two channels still
+does not establish a precise ecosystem-wide rate or a long-run trend; a
+broad, randomly-sampled multi-registry census is future work. The
+capability model targets markdown-with-frontmatter definitions of the
+Claude Code family; adapters for other harness formats exist but carry
+the same lexical boundary. Finally, AgentGuard is static: it cannot
+observe what an agent <em>does</em> at runtime, only what its definition
+permits—pairing the static gate with runtime monitoring is
+complementary, not overlapping, coverage.</p>
+<h1 id="conclusion">Conclusion</h1>
+<p>AgentGuard treats agent definitions as what they operationally are:
+privileged code shipped without review. A capability model over tool
+grants, untrusted inputs, sinks, and guards; 26 deterministic rules with
+strict severity semantics; a posture score that cannot be diluted by
+repository size; and a quality gate that enforces its own recall,
+precision, and metamorphic stability on every commit—together these make
+agent privilege risk a CI property rather than a review-time hope. The
+field result is the motivating fact: across two snapshots a month apart,
+85–86% of official marketplace definitions ship with no injection guard
+at all—a rate unchanged as the marketplace grew <span
+class="math inline">2.5×</span>—and the fix is typically two lines.</p>
+<p>Three directions remain open: (1) an adversarially-contributed
+external benchmark corpus to replace self-authored positives; (2)
+semantic guard detection—closing the euphemism boundary without giving
+up determinism, e.g. via a constrained-vocabulary contract for
+destructive actions; and (3) a cross-harness definition standard so one
+capability model covers every agent format, making least-privilege
+lintable ecosystem-wide.</p>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-anthropic2024agents" class="csl-entry" role="listitem">
+Anthropic. 2024. <em>Building Effective Agents</em>. <a
+href="https://www.anthropic.com/engineering/building-effective-agents">https://www.anthropic.com/engineering/building-effective-agents</a>.
+</div>
+<div id="ref-anthropic2025petri" class="csl-entry" role="listitem">
+Anthropic. 2025. <em>Petri: An Open-Source Auditing Tool to Accelerate
+AI Safety Research</em>. <a
+href="https://alignment.anthropic.com/2025/petri/">https://alignment.anthropic.com/2025/petri/</a>.
+</div>
+<div id="ref-greshake2023indirect" class="csl-entry" role="listitem">
+Greshake, Kai, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres,
+Thorsten Holz, and Mario Fritz. 2023. <em>Not What You’ve Signed up for:
+Compromising Real-World LLM-Integrated Applications with Indirect Prompt
+Injection</em>. <a
+href="https://arxiv.org/abs/2302.12173">https://arxiv.org/abs/2302.12173</a>.
+</div>
+<div id="ref-mitre2024atlas" class="csl-entry" role="listitem">
+MITRE Corporation. 2024. <em>MITRE ATLAS: Adversarial Threat Landscape
+for Artificial-Intelligence Systems</em>. <a
+href="https://atlas.mitre.org/">https://atlas.mitre.org/</a>.
+</div>
+<div id="ref-owasp2025llm" class="csl-entry" role="listitem">
+OWASP Foundation. 2025. <em>OWASP Top 10 for Large Language Model
+Applications</em>. <a
+href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">https://owasp.org/www-project-top-10-for-large-language-model-applications/</a>.
+</div>
+<div id="ref-perez2022ignore" class="csl-entry" role="listitem">
+Perez, Fábio, and Ian Ribeiro. 2022. <em>Ignore Previous Prompt: Attack
+Techniques for Language Models</em>. <a
+href="https://arxiv.org/abs/2211.09527">https://arxiv.org/abs/2211.09527</a>.
+</div>
+<div id="ref-bandit2024" class="csl-entry" role="listitem">
+PyCQA. 2024. <em>Bandit: A Security Linter for Python Source Code</em>.
+<a
+href="https://bandit.readthedocs.io/">https://bandit.readthedocs.io/</a>.
+</div>
+<div id="ref-semgrep2024" class="csl-entry" role="listitem">
+Semgrep, Inc. 2024. <em>Semgrep: Lightweight Static Analysis for Many
+Languages</em>. <a href="https://semgrep.dev/">https://semgrep.dev/</a>.
+</div>
+<div id="ref-willison2022prompt" class="csl-entry" role="listitem">
+Willison, Simon. 2022. <em>Prompt Injection Attacks Against GPT-3</em>.
+<a
+href="https://simonwillison.net/2022/Sep/12/prompt-injection/">https://simonwillison.net/2022/Sep/12/prompt-injection/</a>.
+</div>
+</div>
+</body>
+</html>

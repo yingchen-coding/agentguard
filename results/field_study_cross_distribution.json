@@ -1,0 +1,28 @@
+{
+  "channels": {
+    "official": {
+      "defs": 84,
+      "al202": 72,
+      "al300": 31,
+      "al3xx": 38
+    },
+    "third_party_a": {
+      "defs": 3,
+      "al202": 2,
+      "al300": 1,
+      "al3xx": 1
+    },
+    "third_party_b": {
+      "defs": 17,
+      "al202": 17,
+      "al300": 9,
+      "al3xx": 9
+    }
+  },
+  "combined": {
+    "defs": 104,
+    "al202": 91,
+    "al300": 41,
+    "al3xx": 48
+  }
+}
