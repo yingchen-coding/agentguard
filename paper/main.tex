@@ -32,7 +32,10 @@ of the official Claude Code plugin marketplace at two snapshots one month apart 
 definitions) found 85--86\% lacked any injection guard and 37--39\% could be driven to run a
 command or write a file by content they read---rates that held as the marketplace grew
 $2.5\times$ and replicated on an independent third-party corpus (95\% unguarded, 50\% chain).
-Scanning is cheap: the full marketplace lints in under a second ($\approx$9\,ms per definition). The core claim is narrow: privilege risk in agent definitions can be a deterministic,
+Scanning is cheap: the full marketplace lints in under a second ($\approx$9\,ms per definition).
+The full artifact is versioned with a public DOI and contains the code, paper source, benchmark,
+metamorphic tests, baseline scripts, and release-gate checks needed to reproduce the headline
+claims. The core claim is narrow: privilege risk in agent definitions can be a deterministic,
 benchmark-gated CI check rather than a manual review afterthought.
 \end{abstract}
 
@@ -76,6 +79,9 @@ enforced by a gated benchmark rather than asserted.
   \item A field study of the official Claude Code plugin marketplace quantifying, for the first
     time, how often shipped agent definitions carry the structural preconditions for
     injection-to-action attacks.
+  \item A public reproducibility package with a citable DOI, release artifacts, source paper,
+    benchmark scripts, CI gates, and explicit artifact commands, so the paper can be inspected as a
+    runnable system rather than a standalone claim.
 \end{itemize}
 
 \section{Method}
@@ -271,6 +277,27 @@ numbers below reproduce from the repository with three commands (\texttt{python
 eval/benchmark.py}, \texttt{python eval/adversarial\_review.py}, and \texttt{python
 eval/naive\_baselines.py}); the first two run in CI on every push, so the reported figures are
 continuously re-verified rather than frozen at submission time.
+
+\subsection{Reproducibility Package}
+\label{sec:repro}
+The artifact is public and versioned: the repository release contains the rendered paper and arXiv
+source archive, and the Zenodo concept DOI is
+\href{https://doi.org/10.5281/zenodo.21420490}{10.5281/zenodo.21420490}. The paper's claims are
+designed to be checked without credentials, paid model calls, or private data. The minimum
+reproduction path is:
+\begin{verbatim}
+python eval/benchmark.py --verbose
+python eval/adversarial_review.py
+python eval/naive_baselines.py
+python -m pytest -q
+\end{verbatim}
+The full release gate additionally runs type checking, contract verification, workflow audit,
+package-build validation, and AgentGuard's own publish check. This matters for the central claim:
+the linter is not evaluated by a one-off notebook but by the same deterministic gate a user would
+run in CI. The artifact intentionally separates three classes of evidence: frozen benchmark cases
+for recall/precision, mechanically generated metamorphic variants for stability, and field-study
+snapshots for ecosystem prevalence. No claim in this paper depends on a private corpus or
+non-reproducible model judgment.
 
 \paragraph{Cost.}
 Determinism buys speed as well as reproducibility: on a commodity laptop (Apple M-series), the
@@ -477,6 +504,16 @@ dropping hard cases; freezing the inventory and naming the miss makes the recall
 reviewable artifact. We consider this pattern (gate on recall \emph{and} precision, freeze the
 case inventory, name the misses) more transferable than any individual rule.
 
+\paragraph{What would change the conclusion?}
+The strongest possible negative result would be an independently labeled corpus where the AL300
+chain condition produces many false alarms once human reviewers inspect the definitions. That would
+not merely lower a metric; it would falsify the paper's central engineering claim that the
+structural precondition is precise enough to gate by default. The current evidence argues against
+that outcome in three ways: zero false alarms on the gated negative set, precision-hardening from
+real marketplace false positives, and a manual precision check over the independent third-party
+chain findings. Still, the next step is external human labeling, not another self-authored
+benchmark expansion.
+
 \section{Related Work}
 Indirect prompt injection was established as a structural risk of LLM-integrated applications by
 Greshake et al.\ \cite{greshake2023indirect}, with earlier attack taxonomies from Perez and
@@ -545,6 +582,16 @@ of the Claude Code family; adapters for other harness formats exist but carry th
 boundary. Finally, AgentGuard is static: it cannot observe what an agent \emph{does} at runtime,
 only what its definition permits---pairing the static gate with runtime monitoring is
 complementary, not overlapping, coverage.
+
+\section{Ethics and AI-Use Disclosure}
+AgentGuard scans public or user-provided agent definitions for structural security risk. The field
+study reports aggregate exposure rates and does not publish a per-author vulnerability list or
+claim that specific packages were exploited. The worked exploit example is synthetic and
+minimal; it is included to make the capability chain concrete without targeting a live system.
+The artifact contains deterministic scripts and generated reports; no private logs, credentials,
+or personal data are required to reproduce the results. AI assistance was used for drafting,
+editing, and local iteration of the manuscript and artifact text; all reported measurements come
+from committed scripts or explicitly described manual checks.
 
 \section{Conclusion}
 AgentGuard treats agent definitions as what they operationally are: privileged code shipped
