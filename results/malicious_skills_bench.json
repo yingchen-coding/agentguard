@@ -1,0 +1,323 @@
+{
+  "benchmark": "ProtectSkills/MaliciousAgentSkillsBench",
+  "dataset_commit": "9b525dbbfb528ed152a6a9e3ce43e29eb8686515",
+  "dataset_sha256": "76be9193805678dfa7b849c604c0616c0793ece6811c88b6663eefdcd54c7597",
+  "negative_label_caveat": "Released 'safe' rows are registry skills with no study static-analysis flags, not independently behavior-verified benign labels.",
+  "positive": {
+    "alarm_rules": [
+      "AL203",
+      "AL512"
+    ],
+    "detected": true,
+    "name": "math-calculator",
+    "provenance": "authors' defanged controlled copy of confirmed rest_1659"
+  },
+  "resolution": {
+    "attempted": 33,
+    "candidate_limit": 500,
+    "unresolved": 8
+  },
+  "resolution_failures": [
+    {
+      "reason": "skill path not uniquely resolved",
+      "repo": "hmemcpy/ralph-wiggum",
+      "skill": "ralph-claude"
+    },
+    {
+      "reason": "HTTP 404",
+      "repo": "chedevlooper-creator/Panel-1",
+      "skill": "api-integration"
+    },
+    {
+      "reason": "skill path not uniquely resolved",
+      "repo": "mhalder/dotfiles",
+      "skill": "ansible-playbook"
+    },
+    {
+      "reason": "HTTP 404",
+      "repo": "alexanderjamesmcleod/makecents",
+      "skill": "ai-factory-server.skill"
+    },
+    {
+      "reason": "skill path not uniquely resolved",
+      "repo": "longbridge/gpui-component",
+      "skill": "generate-component-documentation"
+    },
+    {
+      "reason": "skill path not uniquely resolved",
+      "repo": "ei-sugimoto/ei-claude-code-plugins",
+      "skill": "wtp"
+    },
+    {
+      "reason": "HTTP 404",
+      "repo": "lammesen/skills",
+      "skill": "elysiajs-expert"
+    },
+    {
+      "reason": "HTTP 404",
+      "repo": "omerlefaruk/CasareRPA",
+      "skill": "agent-invoker"
+    }
+  ],
+  "safe_sample": {
+    "definition_alarm_rate": 0.96,
+    "definition_alarm_skills": 24,
+    "repo_disjoint": true,
+    "requested": 25,
+    "resolved": 25,
+    "rows": [
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "breverdbidder/spd-site-plan-dev",
+        "sha256": "47050ea6464504dd406051ab21ec9d82833ef2fb6f86282ad41d9f6211ba5b99",
+        "skill": "brevard-site-development",
+        "source_path": ".claude/skills/brevard-site-development/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "datathings/marketplace",
+        "sha256": "cddceb242cd203424bfc5d2cc42cc3effe564165af81e8b790139493f8ba0613",
+        "skill": "greycat",
+        "source_path": "plugins/greycat/skills/greycat/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "avsm/ocaml-claude-marketplace",
+        "sha256": "061ca4370d4dfdf058dd264a2bffa884b5c198fdc0d4d2e8e5291e584ca8336d",
+        "skill": "cmdliner",
+        "source_path": "plugins/ocaml-dev/skills/cmdliner/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL300"
+        ],
+        "repo": "iQeda/MyRust-NeetCode",
+        "sha256": "36df1d1a97981dcdb6013b274e66683bd854735507d5f16439305255571cd61c",
+        "skill": "lc-list",
+        "source_path": ".claude/skills/lc-list/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL300"
+        ],
+        "repo": "archubbuck/workspace-architect",
+        "sha256": "1120b3769e2985cefb3d25be981b1f914abeba57ae079b83c20c666c164fa9fe",
+        "skill": "brand-guidelines",
+        "source_path": "assets/skills/brand-guidelines/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "nobu007/connective-byte",
+        "sha256": "f930aae0b8e41df97af7a0a3e8e864740049fc667492f2a49189327fbfe6d82f",
+        "skill": "agent-creator",
+        "source_path": ".claude/skills/agent-creator/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "weirdgme/claude-code-infrastructure-showcase",
+        "sha256": "85fe7a995ac443c71b48fe3af27d8a2ca7526c6a66cdbdf421497f4460d7ab96",
+        "skill": "api-engineering",
+        "source_path": ".claude/skills/api-engineering/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL203",
+          "AL300"
+        ],
+        "repo": "bennoloeffler/bassi",
+        "sha256": "a60c4a62befdd02c6e955a50436565f3c577c59d7b904acabc725e66e2aed53c",
+        "skill": "art-icon-creator",
+        "source_path": ".claude/skills/art-icon-creator/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300",
+          "AL307"
+        ],
+        "repo": "KimYx0207/Claudecode-Codex-Gemini",
+        "sha256": "355ff99fbff5019556cbaaf3208c2233dbb1041637a4f0d627a91f42b4099cc4",
+        "skill": "kim-orchestrator",
+        "source_path": ".claude/skills/kim-orchestrator/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "KiranEswaran/engineering-skills",
+        "sha256": "69b8f25cd9d3b9af3236aba62086e25228fda895da3e14c8ce8ce711d5a72061",
+        "skill": "agent-workflow",
+        "source_path": "agent-workflow/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "xiechy/climate-ai",
+        "sha256": "c895b1311fa3a0974d10f50a3490e56f2ad2e45d73237631fe5afcfbdab0c749",
+        "skill": "dask",
+        "source_path": "scientific-packages/dask/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "matthew-h-cromer/ros2-learning",
+        "sha256": "3db713aab0106a64bd498196e142b0b218a211fbfb644e346ca6ebae72110516",
+        "skill": "commit",
+        "source_path": ".claude/skills/commit/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL300"
+        ],
+        "repo": "itaosan/dotprofile",
+        "sha256": "b7bf568ba7342b0f41fc82d35bac17471da591cccefeb00f232e5e89b273ff65",
+        "skill": "reviewing-skills",
+        "source_path": "ai-coding/skills/reviewing-skills/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "greenhat/agent-skills",
+        "sha256": "669417f3b6eae1574b7961048150afcc4f50e1cfa1854c1a00f090dc8d8d667c",
+        "skill": "commit-message-style",
+        "source_path": "commit-message-style/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL203",
+          "AL300"
+        ],
+        "repo": "cktc/tonic-sound",
+        "sha256": "529df270f85de7edf2dbec717fa7cc2a9cb38e30ba3c95b64d637c5b1d67ec34",
+        "skill": "codemagic",
+        "source_path": ".claude/skills/codemagic/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL300"
+        ],
+        "repo": "buildermethods/design-os",
+        "sha256": "df39db3f918dace07428576396887b4caee4cba38970bca0f5839ef566309872",
+        "skill": "frontend-design",
+        "source_path": ".claude/skills/frontend-design/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "bobmatnyc/terminator",
+        "sha256": "e29b88485c5fc5c08646d2af4f2659ab5ea01e326a27656be97300c473ab9d93",
+        "skill": "toolchains-ai-frameworks-langchain",
+        "source_path": ".claude/skills/toolchains-ai-frameworks-langchain/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "mitchdenny/hex1b",
+        "sha256": "afa3460d4269f38d0dd883d2514975db7d46954893702f097a99d2dad786f96c",
+        "skill": "doc-tester",
+        "source_path": ".github/skills/doc-tester/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "techybolek/child",
+        "sha256": "1538a834ec0801e377aeadad9a26336b0867fb78dd51b1337819a65477071082",
+        "skill": "qdrant-chunk-retriever",
+        "source_path": ".claude/skills/qdrant-chunk-retriever/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "lolopinto/ent",
+        "sha256": "63a16980624bb0424ed0a0427bac2fca94ad663de86423679842cb87bcaeeab6",
+        "skill": "git-pr-changelog",
+        "source_path": ".codex/skills/git-pr-changelog/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "mepuka/adjunct",
+        "sha256": "6f4cb64c6f82c628d18a5ddb04281d1a38362f9e38e8e151565330a42712268c",
+        "skill": "effect-concurrency-fibers",
+        "source_path": ".claude/skills/effect-concurrency-fibers/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "jamesscalescode/claude-dev-toolkit",
+        "sha256": "6572f11ca66dba5b53b4f6a95f01790f3af2466717218b4b9aed3ff0463c6dd4",
+        "skill": "claude-dev-toolkit",
+        "source_path": "skills/claude-dev-toolkit/SKILL.md"
+      },
+      {
+        "alarm_rules": [],
+        "repo": "saintgo7/app-hospital-yoyang",
+        "sha256": "497bc77f10b7581be7472afa00085aa26174a50a2f1d6a7a27142b27449d7a9b",
+        "skill": "check-accessibility",
+        "source_path": ".claude/skills/check-accessibility/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "hormigo69/brain2",
+        "sha256": "1f61bfd0ff6526a3f63bf172754ce6dabc1da51fecaf31916c7b5c6922f332f5",
+        "skill": "manage-tasks",
+        "source_path": "skills/manage-tasks/SKILL.md"
+      },
+      {
+        "alarm_rules": [
+          "AL202",
+          "AL300"
+        ],
+        "repo": "agenticsorg/hackathon-tv5",
+        "sha256": "e5524686b1e900b8c890c665747752cf5df5732dc1e217f9cf3514fc5e89efd3",
+        "skill": "agentdb-advanced",
+        "source_path": ".claude/skills/agentdb-advanced/SKILL.md"
+      }
+    ],
+    "rule_counts": {
+      "AL202": 20,
+      "AL203": 2,
+      "AL300": 24,
+      "AL307": 1
+    }
+  }
+}
