@@ -37,7 +37,7 @@ Changelog = "https://github.com/yingchen-coding/agentguard/blob/main/CHANGELOG.m
 agentguard = "agentguard.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "ruff>=0.6", "mypy>=1.8", "build>=1", "twine>=6.1", "packaging>=24.2"]
+dev = ["pytest>=7", "ruff>=0.6,<0.16", "mypy>=1.8", "build>=1", "twine>=6.1", "packaging>=24.2"]
 
 [tool.setuptools]
 packages = ["agentguard"]
